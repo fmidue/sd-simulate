@@ -1,0 +1,10 @@
+@startuml
+/'name: #{show name} (irrelevant) label: #{show label}'/
+
+
+state N_1 <<end>>
+
+[*] -> N_1
+
+
+@enduml
