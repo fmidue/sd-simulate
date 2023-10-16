@@ -76,4 +76,4 @@ ignore$
 ^\Qthesis/README.txt\E$
 ^\Qthesis/literatur.bib\E$
 ^\QREADME.md\E$
-^\Qexamples/
+^examples/
