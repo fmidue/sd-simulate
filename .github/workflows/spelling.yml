@@ -66,6 +66,8 @@ jobs:
             cspell:haskell/haskell.txt
             cspell:html/html.txt
             cspell:aws/aws.txt
+            cspell:python/src/python/python.txt
+            cspell:python/src/python/python-lib.txt
 
   comment:
     name: Report
