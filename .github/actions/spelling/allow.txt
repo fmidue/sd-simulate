@@ -14,6 +14,7 @@ bigvee
 bigwedge
 blacktriangleright
 bottomrule
+cairosvg
 captionpos
 clearpage
 concat
@@ -27,6 +28,7 @@ hspace
 hspec
 https
 includegraphics
+ispell
 lastline
 ldots
 lstinputlisting
