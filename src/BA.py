@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog
-import xml.etree.ElementTree as ET
 import cairosvg
 from PIL import Image, ImageTk
 import tempfile
+import xml.etree.ElementTree as ET
 
 ELEMENTS = []
 
@@ -12,28 +12,46 @@ def parse_svg(file_path):
     tree = ET.parse(file_path)
     root = tree.getroot()
 
-    groups = root.findall(".//{http://www.w3.org/2000/svg}g")
+    text_elements = root.findall(".//{http://www.w3.org/2000/svg}text")
+    rect_elements = root.findall(".//{http://www.w3.org/2000/svg}rect")
 
-    for group in groups:
-        rect_element = group.find(".//{http://www.w3.org/2000/svg}rect")
-        text_element = group.find(".//{http://www.w3.org/2000/svg}text")
+    result_list = []
 
-        if rect_element is not None and text_element is not None:
-            x = float(rect_element.get("x"))
-            y = float(rect_element.get("y"))
-            width = float(rect_element.get("width"))
-            height = float(rect_element.get("height"))
-            state_name = text_element.text
+    state_hierarchy = {}
 
-            ELEMENTS.append(
-                {
-                    "x": x,
-                    "y": y,
-                    "width": width,
-                    "height": height,
-                    "name": state_name,
-                }
-            )
+    for text_element in text_elements:
+        text_fill_color = text_element.get("fill")
+        if text_fill_color != "#000000":
+            matching_rect = None
+            for rect_element in rect_elements:
+                rect_stroke_match = rect_element.get("style")
+                if f"stroke:{text_fill_color};" in rect_stroke_match:
+                    matching_rect = rect_element
+                    break
+            if matching_rect is not None:
+                state_name = text_element.text.strip()
+                rect_x = float(matching_rect.get("x"))
+                rect_y = float(matching_rect.get("y"))
+                rect_width = float(matching_rect.get("width"))
+                rect_height = float(matching_rect.get("height"))
+
+                x1 = rect_x
+                x2 = rect_x + rect_width
+                y1 = rect_y
+                y2 = rect_y + rect_height
+
+                result_list.append((state_name, (x1, x2, y1, y2)))
+
+                for other_state, (ox1, ox2, oy1, oy2) in result_list:
+                    if (x1 >= ox1 and x2 <= ox2 and y1 >= oy1 and y2 <= oy2) and (
+                        state_name != other_state
+                    ):
+                        state_hierarchy[state_name] = other_state
+
+    result_list.sort(key=lambda x: state_hierarchy.get(x[0], x[0]))
+
+    global ELEMENTS
+    ELEMENTS = result_list
 
 
 def render_uml_diagram(canvas, svg_file_path):
@@ -63,13 +81,13 @@ def on_canvas_click(event, root, canvas):
 def check_state(x, y, root, canvas):
     for element in reversed(ELEMENTS):
         x1, y1, x2, y2 = (
-            element["x"],
-            element["y"],
-            element["x"] + element["width"],
-            element["y"] + element["height"],
+            element[1][0],
+            element[1][2],
+            element[1][1],
+            element[1][3],
         )
         if x1 <= x <= x2 and y1 <= y <= y2:
-            show_popup(element["name"], x, y, root)
+            show_popup(element[0], x, y, root)
             break
     else:
         show_popup("Outside", x, y, root)
@@ -78,9 +96,7 @@ def check_state(x, y, root, canvas):
 def show_popup(message, x, y, root):
     popup = tk.Toplevel(root)
     popup.title("Information")
-    label_coords = tk.Label(
-        popup, text=f"Clicked Coordinates (x, y): ({x}, {y})"
-    )
+    label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
     label_state = tk.Label(popup, text=f"State: {message}")
     label_coords.pack()
     label_state.pack()
@@ -107,8 +123,8 @@ def choose_file():
     ELEMENTS.clear()
     parse_svg(file_path)
 
-    max_x = max(state["x"] + state["width"] for state in ELEMENTS)
-    max_y = max(state["y"] + state["height"] for state in ELEMENTS)
+    max_x = max(state[1][1] for state in ELEMENTS)
+    max_y = max(state[1][3] for state in ELEMENTS)
     canvas.config(width=max_x + 20, height=max_y + 20)
 
     render_uml_diagram(canvas, file_path)
