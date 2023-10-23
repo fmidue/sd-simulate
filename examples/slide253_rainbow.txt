@@ -1,340 +1,340 @@
 @startuml
 <style>
 .0 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #f6143b
+  LineColor #f6143b
 }
 .1 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #4241ef
+  LineColor #4241ef
 }
 .2 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6e3365
+  LineColor #6e3365
 }
 .3 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #f6a8ca
+  LineColor #f6a8ca
 }
 .4 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #2fed82
+  LineColor #2fed82
 }
 .5 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #a21381
+  LineColor #a21381
 }
 .6 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3948eb
+  LineColor #3948eb
 }
 .7 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3ce719
+  LineColor #3ce719
 }
 .8 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c2871f
+  LineColor #c2871f
 }
 .9 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6f89ca
+  LineColor #6f89ca
 }
 .10 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #53b6fe
+  LineColor #53b6fe
 }
 .11 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #990e41
+  LineColor #990e41
 }
 .12 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #1c49eb
+  LineColor #1c49eb
 }
 .13 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #9adeca
+  LineColor #9adeca
 }
 .14 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #61c351
+  LineColor #61c351
 }
 .15 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #f5048f
+  LineColor #f5048f
 }
 .16 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #840e51
+  LineColor #840e51
 }
 .17 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #fc0813
+  LineColor #fc0813
 }
 .18 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #eeaddb
+  LineColor #eeaddb
 }
 .19 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6c4d72
+  LineColor #6c4d72
 }
 .20 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #51f96a
+  LineColor #51f96a
 }
 .21 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #82d290
+  LineColor #82d290
 }
 .22 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #a9c3f8
+  LineColor #a9c3f8
 }
 .23 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #61cd1b
+  LineColor #61cd1b
 }
 .0 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #493938
+  LineColor #493938
 }
 .1 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #ea70e6
+  LineColor #ea70e6
 }
 .2 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #369c60
+  LineColor #369c60
 }
 .3 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #e980b8
+  LineColor #e980b8
 }
 .4 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5b3f1b
+  LineColor #5b3f1b
 }
 .5 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #7ef711
+  LineColor #7ef711
 }
 .6 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #8f3a24
+  LineColor #8f3a24
 }
 .7 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #e678f7
+  LineColor #e678f7
 }
 .8 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #8e5f05
+  LineColor #8e5f05
 }
 .9 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6d302a
+  LineColor #6d302a
 }
 .10 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #b21820
+  LineColor #b21820
 }
 .11 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #8ab1f0
+  LineColor #8ab1f0
 }
 .12 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #7c96f5
+  LineColor #7c96f5
 }
 .13 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3b91c9
+  LineColor #3b91c9
 }
 .14 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5675b2
+  LineColor #5675b2
 }
 .15 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #35b60f
+  LineColor #35b60f
 }
 .16 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #251987
+  LineColor #251987
 }
 .17 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5842cd
+  LineColor #5842cd
 }
 .18 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #fe958a
+  LineColor #fe958a
 }
 .19 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #777a4b
+  LineColor #777a4b
 }
 .20 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5a0312
+  LineColor #5a0312
 }
 .21 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #772514
+  LineColor #772514
 }
 .22 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #0d3034
+  LineColor #0d3034
 }
 .23 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #971c2a
+  LineColor #971c2a
 }
 .24 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #e088da
+  LineColor #e088da
 }
 .25 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #683964
+  LineColor #683964
 }
 .26 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #8c56c1
+  LineColor #8c56c1
 }
 .27 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #a3f405
+  LineColor #a3f405
 }
 .28 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5b1dec
+  LineColor #5b1dec
 }
 .29 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #279862
+  LineColor #279862
 }
 .30 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #48a6b1
+  LineColor #48a6b1
 }
 .31 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5b44d4
+  LineColor #5b44d4
 }
 .32 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c9dc88
+  LineColor #c9dc88
 }
 .33 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #04985c
+  LineColor #04985c
 }
 .34 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6e1063
+  LineColor #6e1063
 }
 .35 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #da44d7
+  LineColor #da44d7
 }
 .36 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #177297
+  LineColor #177297
 }
 .37 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #46763e
+  LineColor #46763e
 }
 .38 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5ac6f7
+  LineColor #5ac6f7
 }
 .39 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #d345e6
+  LineColor #d345e6
 }
 .40 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #30224f
+  LineColor #30224f
 }
 .41 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c30ece
+  LineColor #c30ece
 }
 .42 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #cb5b2f
+  LineColor #cb5b2f
 }
 .43 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3cd34e
+  LineColor #3cd34e
 }
 .44 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #20fa8b
+  LineColor #20fa8b
 }
 .45 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #1cdb72
+  LineColor #1cdb72
 }
 .46 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #26f032
+  LineColor #26f032
 }
 .47 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #bb203f
+  LineColor #bb203f
 }
 .48 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #06fb1e
+  LineColor #06fb1e
 }
 .49 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6942b4
+  LineColor #6942b4
 }
 .50 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #ad5311
+  LineColor #ad5311
 }
 .51 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #655491
+  LineColor #655491
 }
 .52 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #372e9e
+  LineColor #372e9e
 }
 .53 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #f7911a
+  LineColor #f7911a
 }
 .54 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #ea07d6
+  LineColor #ea07d6
 }
 .55 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3271c6
+  LineColor #3271c6
 }
 .56 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c910ab
+  LineColor #c910ab
 }
 .57 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #a542b5
+  LineColor #a542b5
 }
 .58 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #9f1d20
+  LineColor #9f1d20
 }
 .59 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #470373
+  LineColor #470373
 }
 </style>
 

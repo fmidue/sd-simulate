@@ -1,32 +1,32 @@
 @startuml
 <style>
 .A(C) {
-  FontColor #000000
-  LineColor #000000
+  FontColor #05cd38
+  LineColor #05cd38
 }
 .B(C) {
-  FontColor #000000
-  LineColor #000000
+  FontColor #4602f9
+  LineColor #4602f9
 }
 .A(D) {
-  FontColor #000000
-  LineColor #000000
+  FontColor #9b0e5a
+  LineColor #9b0e5a
 }
 .B(D) {
-  FontColor #000000
-  LineColor #000000
+  FontColor #e3e8c5
+  LineColor #e3e8c5
 }
 .C {
-  FontColor #000000
-  LineColor #000000
+  FontColor #109259
+  LineColor #109259
 }
 .D {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6049c2
+  LineColor #6049c2
 }
 .X() {
-  FontColor #000000
-  LineColor #000000
+  FontColor #bd89c5
+  LineColor #bd89c5
 }
 </style>
 

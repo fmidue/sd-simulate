@@ -1,24 +1,24 @@
 @startuml
 <style>
 .CD {
-  FontColor #000000
-  LineColor #000000
+  FontColor #9f358b
+  LineColor #9f358b
 }
 .Radio {
-  FontColor #000000
-  LineColor #000000
+  FontColor #33b474
+  LineColor #33b474
 }
 .1 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #be8565
+  LineColor #be8565
 }
 .2 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #4d4ec6
+  LineColor #4d4ec6
 }
 .3 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #6807a4
+  LineColor #6807a4
 }
 </style>
 

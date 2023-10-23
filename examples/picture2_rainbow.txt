@@ -1,24 +1,24 @@
 @startuml
 <style>
 .idle {
-  FontColor #000000
-  LineColor #000000
+  FontColor #f611ac
+  LineColor #f611ac
 }
 .Send order request {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5774b3
+  LineColor #5774b3
 }
 .Select normal or special order {
-  FontColor #000000
-  LineColor #000000
+  FontColor #76bbaf
+  LineColor #76bbaf
 }
 .Order confirmation {
-  FontColor #000000
-  LineColor #000000
+  FontColor #915a53
+  LineColor #915a53
 }
 .Dispatch order {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c9d424
+  LineColor #c9d424
 }
 </style>
 

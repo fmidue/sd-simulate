@@ -1,28 +1,28 @@
 @startuml
 <style>
 .Composite State {
-  FontColor #000000
-  LineColor #000000
+  FontColor #b248a1
+  LineColor #b248a1
 }
 .State 1 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #9dd7be
+  LineColor #9dd7be
 }
 .state 2 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #7a1666
+  LineColor #7a1666
 }
 .State 2a {
-  FontColor #000000
-  LineColor #000000
+  FontColor #5e3cf9
+  LineColor #5e3cf9
 }
 .State 2b {
-  FontColor #000000
-  LineColor #000000
+  FontColor #bbf8ed
+  LineColor #bbf8ed
 }
 .State 3 {
-  FontColor #000000
-  LineColor #000000
+  FontColor #4c5bec
+  LineColor #4c5bec
 }
 </style>
 

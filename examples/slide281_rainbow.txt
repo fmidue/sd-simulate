@@ -1,28 +1,28 @@
 @startuml
 <style>
 .A {
-  FontColor #000000
-  LineColor #000000
+  FontColor #542d02
+  LineColor #542d02
 }
 .B {
-  FontColor #000000
-  LineColor #000000
+  FontColor #251eb2
+  LineColor #251eb2
 }
 . {
-  FontColor #000000
-  LineColor #000000
+  FontColor #3fe601
+  LineColor #3fe601
 }
 .C {
-  FontColor #000000
-  LineColor #000000
+  FontColor #e19c00
+  LineColor #e19c00
 }
 .D {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c96558
+  LineColor #c96558
 }
 .X {
-  FontColor #000000
-  LineColor #000000
+  FontColor #c16fd1
+  LineColor #c16fd1
 }
 </style>
 
