@@ -43,9 +43,9 @@ def parse_svg(file_path):
                 result_list.append((state_name, (x1, x2, y1, y2)))
 
                 for other_state, (ox1, ox2, oy1, oy2) in result_list:
-                    if (x1 >= ox1 and x2 <= ox2 and y1 >= oy1 and y2 <= oy2) and (
-                        state_name != other_state
-                    ):
+                    if (
+                        x1 >= ox1 and x2 <= ox2 and y1 >= oy1 and y2 <= oy2
+                    ) and (state_name != other_state):
                         state_hierarchy[state_name] = other_state
 
     result_list.sort(key=lambda x: state_hierarchy.get(x[0], x[0]))
@@ -96,7 +96,9 @@ def check_state(x, y, root, canvas):
 def show_popup(message, x, y, root):
     popup = tk.Toplevel(root)
     popup.title("Information")
-    label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
+    label_coords = tk.Label(
+        popup, text=f"Clicked Coordinates (x, y): ({x}, {y})"
+    )
     label_state = tk.Label(popup, text=f"State: {message}")
     label_coords.pack()
     label_state.pack()
