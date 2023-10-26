@@ -89,7 +89,7 @@ def toggle_color_mode():
     global color_mode, svg_file_path
     color_mode = not color_mode
     if svg_file_path:
-        render_uml_diagram(canvas, svg_file_path)
+        render_uml_diagram(canvas, svg_file_path, active_state=None)
 
 
 def on_canvas_click(event):
@@ -98,16 +98,16 @@ def on_canvas_click(event):
     x, y = event.x, event.y
     state_name = check_state(x, y)
     show_popup(state_name, x, y)
+    ACTIVE_STATE = state_name
+    print(f"Clicked state: {state_name}")
+    marked_states = find_active_states(state_name)
+    print(f"Marked states: {marked_states}")
+    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
 
 
 def check_state(x, y):
     for element in reversed(ELEMENTS):
-        x1, y1, x2, y2 = (
-            element[1][0],
-            element[1][2],
-            element[1][1],
-            element[1][3],
-        )
+        x1, x2, y1, y2 = element[1]
         if x1 <= x <= x2 and y1 <= y <= y2:
             return element[0]
     return "Outside"
@@ -122,24 +122,53 @@ def show_popup(message, x, y):
     label_state.pack()
 
 
-def render_uml_diagram(canvas, svg_file_path):
+def render_uml_diagram(canvas, svg_file_path, active_state):
     canvas.delete("all")
     if not svg_file_path:
         print("No SVG file selected.")
         return
-    with open(svg_file_path, "r") as svg_file:
-        svg_content = svg_file.read()
-    if color_mode:
-        modified_svg_content = svg_content
-    else:
-        modified_svg_content = no_colors_diagram(svg_content)
-    png_data = cairosvg.svg2png(bytestring=modified_svg_content)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_png:
-        temp_png.write(png_data)
+
+    svg_content = open(svg_file_path, "rb").read()
+    temp_png = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    cairosvg.svg2png(bytestring=svg_content, write_to=temp_png.name)
+    temp_png.close()
+
     image = Image.open(temp_png.name)
     photo = ImageTk.PhotoImage(image)
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
     canvas.image = photo
+
+    if active_state:
+        marked_states = find_active_states(active_state)
+        for state, hierarchy in STATE_HIERARCHY.items():
+            if state == active_state or state in marked_states:
+                for element in ELEMENTS:
+                    if element[0] == state:
+                        x1, x2, y1, y2 = element[1]
+
+                        outline_color = "red" if state != active_state else "green"
+                        outline_width = 1 if state != active_state else 3
+
+                        canvas.create_rectangle(x1, y1, x2, y2, outline=outline_color, width=outline_width)
+                        break
+
+    max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
+    max_y = max(ELEMENTS, key=lambda item: item[1][3])[1][3]
+    canvas.config(width=max_x + 20, height=max_y + 20)
+
+
+def find_active_states(state):
+    marked_states = {state}
+    for parent_state, child_states in STATE_HIERARCHY.items():
+        if state in child_states:
+            marked_states.add(parent_state)
+            print(f"Marked state: {parent_state}")
+            marked_states.update(find_active_states(parent_state))
+    return marked_states
+
+
+def Enter_state(state_name):
+    render_uml_diagram(canvas, svg_file_path, active_state=state_name)
 
 
 def choose_file():
@@ -156,7 +185,8 @@ def choose_file():
     max_y = max(state[1][3] for state in ELEMENTS)
     canvas.config(width=max_x + 20, height=max_y + 20)
     svg_file_path = file_path
-    render_uml_diagram(canvas, file_path)
+
+    render_uml_diagram(canvas, file_path, active_state=None)
 
 
 app = tk.Tk()
@@ -168,11 +198,15 @@ canvas.pack(expand=tk.YES, fill=tk.BOTH)
 load_button = tk.Button(app, text="Load UML Diagram", command=choose_file)
 load_button.pack()
 
-toggle_button = tk.Button(
-    app, text="Switch Color Mode", command=toggle_color_mode
-)
+toggle_button = tk.Button(app, text="Switch Color Mode", command=toggle_color_mode)
 toggle_button.pack()
 
 canvas.bind("<Button-1>", on_canvas_click)
+
+
+state_name_entry = tk.Entry(app)
+state_name_entry.pack()
+highlight_button = tk.Button(app, text=" Enter state name ", command=lambda: Enter_state(state_name_entry.get()))
+highlight_button.pack()
 
 app.mainloop()
