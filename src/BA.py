@@ -8,7 +8,8 @@ import xml.etree.ElementTree as ET
 ELEMENTS = []
 STATE_HIERARCHY = {}
 
-color_mode = True
+
+debug_mode = False
 
 svg_file_path = None
 
@@ -86,8 +87,8 @@ def no_colors_diagram(svg_content):
 
 
 def toggle_color_mode():
-    global color_mode, svg_file_path
-    color_mode = not color_mode
+    global debug_mode
+    debug_mode = not debug_mode
     if svg_file_path:
         render_uml_diagram(canvas, svg_file_path, active_state=None)
 
@@ -114,12 +115,13 @@ def check_state(x, y):
 
 
 def show_popup(message, x, y):
-    popup = tk.Toplevel()
-    popup.title("Information")
-    label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
-    label_state = tk.Label(popup, text=f"State: {message}")
-    label_coords.pack()
-    label_state.pack()
+    if debug_mode:
+        popup = tk.Toplevel()
+        popup.title("Information")
+        label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
+        label_state = tk.Label(popup, text=f"State: {message}")
+        label_coords.pack()
+        label_state.pack()
 
 
 def render_uml_diagram(canvas, svg_file_path, active_state):
@@ -128,10 +130,18 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
         print("No SVG file selected.")
         return
 
-    svg_content = open(svg_file_path, "rb").read()
-    temp_png = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    cairosvg.svg2png(bytestring=svg_content, write_to=temp_png.name)
-    temp_png.close()
+    with open(svg_file_path, "r") as svg_file:
+        svg_content = svg_file.read()
+
+    if debug_mode:
+        modified_svg_content = svg_content
+    else:
+        modified_svg_content = no_colors_diagram(svg_content)
+
+    png_data = cairosvg.svg2png(bytestring=modified_svg_content)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_png:
+        temp_png.write(png_data)
 
     image = Image.open(temp_png.name)
     photo = ImageTk.PhotoImage(image)
@@ -188,18 +198,33 @@ def choose_file():
 
     render_uml_diagram(canvas, file_path, active_state=None)
 
+    canvas.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"))
+
 
 app = tk.Tk()
 app.title("UML Diagram Viewer")
 
-canvas = tk.Canvas(app, bg="white", width=600, height=600)
-canvas.pack(expand=tk.YES, fill=tk.BOTH)
+canvas_frame = tk.Frame(app)
+canvas_frame.pack(fill=tk.BOTH, expand=True)
+
+canvas = tk.Canvas(canvas_frame, bg="white")
+canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+
+scrollbar = tk.Canvas(canvas_frame, width=10, bg="gray")
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+vsb = tk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=canvas.yview)
+vsb.pack(side=tk.RIGHT, fill=tk.Y)
+canvas.configure(yscrollcommand=vsb.set)
 
 load_button = tk.Button(app, text="Load UML Diagram", command=choose_file)
 load_button.pack()
 
-toggle_button = tk.Button(app, text="Switch Color Mode", command=toggle_color_mode)
-toggle_button.pack()
+if debug_mode:
+    toggle_button = tk.Button(app, text="Toggle Color Mode", command=toggle_color_mode)
+    toggle_button.pack()
 
 canvas.bind("<Button-1>", on_canvas_click)
 
