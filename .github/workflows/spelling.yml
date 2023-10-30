@@ -68,6 +68,7 @@ jobs:
             cspell:aws/aws.txt
             cspell:python/src/python/python.txt
             cspell:python/src/python/python-lib.txt
+            cspell:python/src/common/extra.txt
 
   comment:
     name: Report
