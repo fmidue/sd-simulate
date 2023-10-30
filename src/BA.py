@@ -96,8 +96,14 @@ def toggle_color_mode():
 def on_canvas_click(event):
     if not ELEMENTS:
         return
-    x, y = event.x, event.y
+
+    x_offset = canvas.canvasx(0)
+    y_offset = canvas.canvasy(0)
+
+    x, y = event.x + x_offset, event.y + y_offset
+
     state_name = check_state(x, y)
+
     show_popup(state_name, x, y)
     ACTIVE_STATE = state_name
     print(f"Clicked state: {state_name}")
@@ -205,6 +211,24 @@ def choose_file():
 app = tk.Tk()
 app.title("UML Diagram Viewer")
 
+button_frame = tk.Frame(app)
+button_frame.pack(side=tk.TOP, fill=tk.X)
+
+load_button = tk.Button(button_frame, text="Load UML Diagram", command=choose_file)
+load_button.pack()
+
+if debug_mode:
+    toggle_button = tk.Button(button_frame, text="Toggle Color Mode", command=toggle_color_mode)
+    toggle_button.pack()
+
+state_name_entry = tk.Entry(button_frame)
+state_name_entry.pack()
+highlight_button = tk.Button(
+    button_frame, text="Enter state name", command=lambda: Enter_state(state_name_entry.get())
+)
+highlight_button.pack()
+
+
 canvas_frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -212,26 +236,13 @@ canvas = tk.Canvas(canvas_frame, bg="white")
 canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 
+canvas.bind("<Button-1>", on_canvas_click)
+
 scrollbar = tk.Canvas(canvas_frame, width=10, bg="gray")
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 vsb = tk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=canvas.yview)
 vsb.pack(side=tk.RIGHT, fill=tk.Y)
 canvas.configure(yscrollcommand=vsb.set)
-
-load_button = tk.Button(app, text="Load UML Diagram", command=choose_file)
-load_button.pack()
-
-if debug_mode:
-    toggle_button = tk.Button(app, text="Toggle Color Mode", command=toggle_color_mode)
-    toggle_button.pack()
-
-canvas.bind("<Button-1>", on_canvas_click)
-
-
-state_name_entry = tk.Entry(app)
-state_name_entry.pack()
-highlight_button = tk.Button(app, text=" Enter state name ", command=lambda: Enter_state(state_name_entry.get()))
-highlight_button.pack()
 
 app.mainloop()
