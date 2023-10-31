@@ -1,13 +1,14 @@
+import tempfile
 import tkinter as tk
+import xml.etree.ElementTree as ET
 from tkinter import filedialog
+from typing import Dict, List
+
 import cairosvg
 from PIL import Image, ImageTk
-import tempfile
-import xml.etree.ElementTree as ET
 
 ELEMENTS = []
-STATE_HIERARCHY = {}
-
+STATE_HIERARCHY: Dict[str, List[str]] = {}
 
 debug_mode = False
 
@@ -20,6 +21,7 @@ def parse_svg(file_path):
     result_list = []
     text_elements = root.findall(".//{http://www.w3.org/2000/svg}text")
     rect_elements = root.findall(".//{http://www.w3.org/2000/svg}rect")
+
     for text_element in text_elements:
         text_fill_color = text_element.get("fill")
         if text_fill_color != "#000000":
@@ -40,6 +42,7 @@ def parse_svg(file_path):
                 y1 = rect_y
                 y2 = rect_y + rect_height
                 result_list.append((state_name, (x1, x2, y1, y2)))
+
     result_list.sort(key=lambda x: (len(STATE_HIERARCHY.get(x[0], [])), x[1][0]))
     STATE_HIERARCHY.update(build_state_hierarchy(result_list))
 
@@ -76,12 +79,14 @@ def no_colors_diagram(svg_content):
     text_elements = root.findall(".//{http://www.w3.org/2000/svg}text")
     rect_elements = root.findall(".//{http://www.w3.org/2000/svg}rect")
     line_elements = root.findall(".//{http://www.w3.org/2000/svg}line")
+
     for text_element in text_elements:
         text_element.set("fill", "#000000")
     for element in rect_elements + line_elements:
         style = element.get("style")
         style = style.replace("stroke:#", "stroke:#000000;")
         element.set("style", style)
+
     modified_svg_content = ET.tostring(root, encoding="unicode")
     return modified_svg_content
 
@@ -161,10 +166,8 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
                 for element in ELEMENTS:
                     if element[0] == state:
                         x1, x2, y1, y2 = element[1]
-
                         outline_color = "red" if state != active_state else "green"
                         outline_width = 1 if state != active_state else 3
-
                         canvas.create_rectangle(x1, y1, x2, y2, outline=outline_color, width=outline_width)
                         break
 
@@ -201,11 +204,16 @@ def choose_file():
     max_y = max(state[1][3] for state in ELEMENTS)
     canvas.config(width=max_x + 20, height=max_y + 20)
     svg_file_path = file_path
-
     render_uml_diagram(canvas, file_path, active_state=None)
-
     canvas.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
+
+
+def on_canvas_scroll(event):
+    if event.delta > 0:
+        canvas.yview_scroll(-1, "units")
+    elif event.delta < 0:
+        canvas.yview_scroll(1, "units")
 
 
 app = tk.Tk()
@@ -228,15 +236,14 @@ highlight_button = tk.Button(
 )
 highlight_button.pack()
 
-
 canvas_frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
 canvas = tk.Canvas(canvas_frame, bg="white")
 canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-
 canvas.bind("<Button-1>", on_canvas_click)
+canvas.bind("<MouseWheel>", on_canvas_scroll)
 
 scrollbar = tk.Canvas(canvas_frame, width=10, bg="gray")
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
