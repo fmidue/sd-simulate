@@ -48,4 +48,3 @@ uncurry
 usepackage
 varepsilon
 yscrollcommand
-vsb
