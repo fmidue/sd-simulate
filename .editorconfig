@@ -9,7 +9,10 @@ indent_size = 2
 max_line_length = 120
 
 [**.{yml,yaml,md,tex,txt}]
-max_line_length = 400
+max_line_length = 160
 
-[.github/{linters,actions/spelling}/*]
-max_line_length = 400
+[README.md]
+max_line_length = unset
+
+[.github/{linters,actions/spelling,workflows}/*]
+max_line_length = unset
