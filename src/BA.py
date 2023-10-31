@@ -168,7 +168,10 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
                         x1, x2, y1, y2 = element[1]
                         outline_color = "red" if state != active_state else "green"
                         outline_width = 1 if state != active_state else 3
-                        canvas.create_rectangle(x1, y1, x2, y2, outline=outline_color, width=outline_width)
+                        canvas.create_rectangle(
+                            x1, y1, x2, y2, outline=outline_color, width=outline_width
+                        )
+
                         break
 
     max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
@@ -226,13 +229,17 @@ load_button = tk.Button(button_frame, text="Load UML Diagram", command=choose_fi
 load_button.pack()
 
 if debug_mode:
-    toggle_button = tk.Button(button_frame, text="Toggle Color Mode", command=toggle_color_mode)
+    toggle_button = tk.Button(
+        button_frame, text="Toggle Color Mode", command=toggle_color_mode
+    )
     toggle_button.pack()
 
 state_name_entry = tk.Entry(button_frame)
 state_name_entry.pack()
 highlight_button = tk.Button(
-    button_frame, text="Enter state name", command=lambda: Enter_state(state_name_entry.get())
+    button_frame,
+    text="Enter state name",
+    command=lambda: Enter_state(state_name_entry.get()),
 )
 highlight_button.pack()
 
