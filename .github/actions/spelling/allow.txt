@@ -36,6 +36,7 @@ lstlisting
 lstset
 mathrm
 multicolumn
+nsew
 oneof
 pagebreak
 println
@@ -47,4 +48,5 @@ subsubsection
 uncurry
 usepackage
 varepsilon
+xscrollcommand
 yscrollcommand
