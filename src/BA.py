@@ -159,6 +159,10 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
     canvas.image = photo
 
+    if not ELEMENTS:
+        print("No elements to highlight.Only Rendering the SVG ")
+        return
+
     if active_state:
         marked_states = find_active_states(active_state)
         for state, hierarchy in STATE_HIERARCHY.items():
@@ -171,7 +175,6 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
                         canvas.create_rectangle(
                             x1, y1, x2, y2, outline=outline_color, width=outline_width
                         )
-
                         break
 
     max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
@@ -203,9 +206,12 @@ def choose_file():
     ELEMENTS.clear()
     STATE_HIERARCHY.clear()
     parse_svg(file_path)
-    max_x = max(state[1][1] for state in ELEMENTS)
-    max_y = max(state[1][3] for state in ELEMENTS)
-    canvas.config(width=max_x + 20, height=max_y + 20)
+
+    if ELEMENTS:
+        max_x = max(state[1][1] for state in ELEMENTS)
+        max_y = max(state[1][3] for state in ELEMENTS)
+        canvas.config(width=max_x + 20, height=max_y + 20)
+
     svg_file_path = file_path
     render_uml_diagram(canvas, file_path, active_state=None)
     canvas.update_idletasks()
@@ -213,10 +219,17 @@ def choose_file():
 
 
 def on_canvas_scroll(event):
-    if event.delta > 0:
-        canvas.yview_scroll(-1, "units")
-    elif event.delta < 0:
-        canvas.yview_scroll(1, "units")
+    shift = (event.state & 0x1) != 0
+    if shift:
+        if event.delta > 0:
+            canvas.xview_scroll(-1, "units")
+        elif event.delta < 0:
+            canvas.xview_scroll(1, "units")
+    else:
+        if event.delta > 0:
+            canvas.yview_scroll(-1, "units")
+        elif event.delta < 0:
+            canvas.yview_scroll(1, "units")
 
 
 app = tk.Tk()
@@ -243,20 +256,33 @@ highlight_button = tk.Button(
 )
 highlight_button.pack()
 
+
 canvas_frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
+
 canvas = tk.Canvas(canvas_frame, bg="white")
-canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+canvas.grid(row=0, column=0, sticky="nsew")
 
-canvas.bind("<Button-1>", on_canvas_click)
+
+vertical_scroll_bar = tk.Scrollbar(
+    canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg="gray"
+)
+vertical_scroll_bar.grid(row=0, column=1, sticky="ns")
+canvas.configure(yscrollcommand=vertical_scroll_bar.set)
+
+
+horizontal_scroll_bar = tk.Scrollbar(
+    canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg="gray"
+)
+horizontal_scroll_bar.grid(row=1, column=0, sticky="ew")
+canvas.configure(xscrollcommand=horizontal_scroll_bar.set)
+
+
+canvas_frame.grid_rowconfigure(0, weight=1)
+canvas_frame.grid_columnconfigure(0, weight=1)
+
 canvas.bind("<MouseWheel>", on_canvas_scroll)
-
-scrollbar = tk.Canvas(canvas_frame, width=10, bg="gray")
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-vsb = tk.Scrollbar(canvas_frame, orient=tk.VERTICAL, command=canvas.yview)
-vsb.pack(side=tk.RIGHT, fill=tk.Y)
-canvas.configure(yscrollcommand=vsb.set)
+canvas.bind("<Button-1>", on_canvas_click)
 
 app.mainloop()
