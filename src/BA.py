@@ -1,3 +1,4 @@
+import re
 import tempfile
 import tkinter as tk
 import xml.etree.ElementTree as ET
@@ -9,10 +10,19 @@ from PIL import Image, ImageTk
 
 ELEMENTS = []
 STATE_HIERARCHY: Dict[str, List[str]] = {}
-
 debug_mode = False
-
 svg_file_path = None
+ACTIVE_STATE = None
+current_scale = 1.0
+
+
+def identify_xml_type(root):
+    g_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
+    has_id = any(g.get("id") is not None for g in g_elements)
+    if has_id:
+        return "Type1"
+    else:
+        return "Type2"
 
 
 def parse_svg(file_path):
@@ -55,21 +65,152 @@ def parse_svg(file_path):
     ELEMENTS = result_list
 
 
-def build_state_hierarchy(elements):
-    hierarchy = {}
-    stack = []
+def svg_path_to_coords(path_str):
+    x_values = []
+    y_values = []
 
-    for state_name, (x1, x2, y1, y2) in elements:
-        hierarchy[state_name] = []
+    commands = re.findall(
+        r"([MmLlHhVvCcSsQqTtAaZz])([^MmLlHhVvCcSsQqTtAaZz]*)", path_str
+    )
 
-        if stack:
-            for parent_name, (px1, px2, py1, py2) in reversed(stack):
-                if x1 >= px1 and x2 <= px2 and y1 >= py1 and y2 <= py2:
-                    hierarchy[parent_name].append(state_name)
-                    stack.append((state_name, (x1, x2, y1, y2)))
-                    break
+    current_x, current_y = 0, 0
+    subpath_start_x, subpath_start_y = 0, 0
+
+    for command, data_str in commands:
+        data = list(map(float, re.findall(r"[-+]?\d*\.\d+|[-+]?\d+", data_str)))
+
+        if command in "Mm":
+            if len(data) >= 2:
+                current_x, current_y = data[0], data[1]
+                subpath_start_x, subpath_start_y = current_x, current_y
+                x_values.append(current_x)
+                y_values.append(current_y)
+
+        elif command in "Ll":
+            for i in range(0, len(data), 2):
+                x, y = data[i], data[i + 1]
+                x_values.append(x)
+                y_values.append(y)
+                current_x, current_y = x, y
+
+        elif command in "Hh":
+            for x in data:
+                x_values.append(x)
+                y_values.append(current_y)
+                current_x = x
+
+        elif command in "Vv":
+            for y in data:
+                x_values.append(current_x)
+                y_values.append(y)
+                current_y = y
+
+        elif command in "Cc":
+            pass
+
+        elif command in "Zz":
+            current_x, current_y = subpath_start_x, subpath_start_y
+
+    if x_values and y_values:
+        x1 = min(x_values)
+        x2 = max(x_values)
+        y1 = min(y_values)
+        y2 = max(y_values) + 3
+
+        x1, y1 = x2 + x1 - 8, y2 + y1 - 7
+
+        return x1, x2, y1, y2
+
+    return None
+
+
+def parse_svg2(file_path):
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+    result_list = []
+
+    group_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
+
+    for group_element in group_elements:
+        group_fill_color = group_element.get("fill")
+        print(f"Group Fill Color: {group_fill_color}")
+        if group_fill_color == "rgb(0,0,0)":
+            print("here skipped black colored group")
+            continue
+
+        text_element = group_element.find(".//{http://www.w3.org/2000/svg}text")
+
+        if text_element is not None:
+            if text_element.text:
+                state_name = text_element.text.strip()
+            else:
+                state_name = "''"
+            print(f"Found Text Element: {state_name}")
         else:
-            stack.append((state_name, (x1, x2, y1, y2)))
+            print("No Text Element found in group")
+            continue
+
+        related_path = None
+        for path_element in root.findall(".//{http://www.w3.org/2000/svg}g"):
+            path_stroke_color = path_element.get("stroke")
+
+            if path_stroke_color is not None:
+                path = path_element.find(".//{http://www.w3.org/2000/svg}path")
+                print(f"Path Stroke Color: {path_stroke_color}")
+                if path_stroke_color == group_fill_color:
+                    related_path = path.get("d")
+                    break
+
+        if related_path:
+            coordinates = svg_path_to_coords(related_path)
+            if coordinates:
+                result_list.append((state_name, coordinates))
+            print(f"Added State: {state_name}")
+            print(f"Related Path: {related_path}")
+        else:
+            print(f"No matching path found for state: {state_name}")
+
+    for state, coordinates in result_list:
+        print(f"State: {state}")
+        print(f"Coordinates: {coordinates}")
+        print()
+
+    global STATE_HIERARCHY
+    STATE_HIERARCHY = build_state_hierarchy(result_list)
+
+    if result_list:
+        max_x = max(coordinates[1] for _, coordinates in result_list)
+        max_y = max(coordinates[3] for _, coordinates in result_list)
+        print(f"Max X: {max_x}")
+        print(f"Max Y: {max_y}")
+    else:
+        print("The selected SVG doesn't contain the expected elements.")
+
+    for state, hierarchy in STATE_HIERARCHY.items():
+        print(f"State: {state}")
+        print(f"Children: {hierarchy}")
+        print()
+
+    global ELEMENTS
+    ELEMENTS = result_list
+
+
+def build_state_hierarchy(states):
+    hierarchy = {state: [] for state, _ in states}
+
+    states = sorted(states, key=lambda x: (x[1][1] - x[1][0]) * (x[1][3] - x[1][2]))
+
+    for i, (child_state, child_coords) in enumerate(states):
+        for j in range(i + 1, len(states)):
+            parent_state, parent_coords = states[j]
+            if (
+                parent_coords[0] <= child_coords[0]
+                and parent_coords[1] >= child_coords[1]
+                and parent_coords[2] <= child_coords[2]
+                and parent_coords[3] >= child_coords[3]
+            ):
+                hierarchy[parent_state].append(child_state)
+                break
 
     return hierarchy
 
@@ -99,18 +240,29 @@ def toggle_color_mode():
 
 
 def on_canvas_click(event):
+    global ACTIVE_STATE, current_scale
+
     if not ELEMENTS:
         return
 
     x_offset = canvas.canvasx(0)
     y_offset = canvas.canvasy(0)
 
-    x, y = event.x + x_offset, event.y + y_offset
+    x = (event.x + x_offset) / current_scale
+    y = (event.y + y_offset) / current_scale
 
-    state_name = check_state(x, y)
+    xml_type = identify_xml_type(ET.parse(svg_file_path).getroot())
+
+    if xml_type == "Type1":
+        state_name = check_state_type1(x, y)
+    else:
+        state_hierarchy = check_state_type2(x, y)
+        if state_hierarchy:
+            state_name = state_hierarchy[-1]
 
     show_popup(state_name, x, y)
     ACTIVE_STATE = state_name
+
     print(f"Clicked state: {state_name}")
     marked_states = find_active_states(state_name)
     print(f"Marked states: {marked_states}")
@@ -123,6 +275,40 @@ def check_state(x, y):
         if x1 <= x <= x2 and y1 <= y <= y2:
             return element[0]
     return "Outside"
+
+
+def check_state_type1(x, y):
+    print(f"Checking state for x={x}, y={y}")
+
+    for element in reversed(ELEMENTS):
+        x1, x2, y1, y2 = element[1]
+        print(f"Checking against x1={x1}, x2={x2}, y1={y1}, y2={y2}")
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            print(f"Matched with {element[0]}")
+            return element[0]
+    print("Outside")
+    return "Outside"
+
+
+def check_state_type2(x, y, state=None, state_hierarchy=None):
+    if state is None:
+        state = "Outside"
+    if state_hierarchy is None:
+        state_hierarchy = []
+
+    for element in ELEMENTS:
+        x1, x2, y1, y2 = element[1]
+        if x1 <= x <= x2 and y1 <= y <= y2:
+            state = element[0]
+            break
+
+    if state not in state_hierarchy:
+        state_hierarchy.append(state)
+        parent_states = STATE_HIERARCHY.get(state, [])
+        for parent_state in parent_states:
+            check_state_type2(x, y, parent_state, state_hierarchy)
+
+    return state_hierarchy
 
 
 def show_popup(message, x, y):
@@ -155,6 +341,9 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
         temp_png.write(png_data)
 
     image = Image.open(temp_png.name)
+    image = image.resize(
+        (int(image.width * current_scale), int(image.height * current_scale))
+    )
     photo = ImageTk.PhotoImage(image)
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
     canvas.image = photo
@@ -169,9 +358,11 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
             if state == active_state or state in marked_states:
                 for element in ELEMENTS:
                     if element[0] == state:
-                        x1, x2, y1, y2 = element[1]
+                        x1, x2, y1, y2 = [
+                            int(coord * current_scale) for coord in element[1]
+                        ]
                         outline_color = "red" if state != active_state else "green"
-                        outline_width = 1 if state != active_state else 3
+                        outline_width = 2 if state != active_state else 3
                         canvas.create_rectangle(
                             x1, y1, x2, y2, outline=outline_color, width=outline_width
                         )
@@ -202,10 +393,25 @@ def choose_file():
     if not file_path:
         return
     print("Selected File:", file_path)
-    canvas.delete("all")
-    ELEMENTS.clear()
-    STATE_HIERARCHY.clear()
-    parse_svg(file_path)
+
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+    xml_type = identify_xml_type(root)
+
+    if xml_type == "Type1":
+        print("Handling Type 1 XML.")
+        canvas.delete("all")
+        ELEMENTS.clear()
+        STATE_HIERARCHY.clear()
+        parse_svg(file_path)
+    elif xml_type == "Type2":
+        print("Handling Type 2 XML.")
+        canvas.delete("all")
+        ELEMENTS.clear()
+        STATE_HIERARCHY.clear()
+        parse_svg2(file_path)
+    else:
+        print("Unknown file type")
 
     if ELEMENTS:
         max_x = max(state[1][1] for state in ELEMENTS)
@@ -230,6 +436,21 @@ def on_canvas_scroll(event):
             canvas.yview_scroll(-1, "units")
         elif event.delta < 0:
             canvas.yview_scroll(1, "units")
+
+
+def zoom(event):
+    global current_scale
+    scale_factor = 1.1 if event.delta > 0 else 0.9
+    current_scale *= scale_factor
+
+    x = canvas.canvasx(event.x)
+    y = canvas.canvasy(event.y)
+    canvas.scale("all", x, y, scale_factor, scale_factor)
+
+    scroll_x1, scroll_y1, scroll_x2, scroll_y2 = canvas.bbox("all")
+    canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
+
+    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
 
 
 app = tk.Tk()
@@ -260,10 +481,8 @@ highlight_button.pack()
 canvas_frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
-
 canvas = tk.Canvas(canvas_frame, bg="white")
 canvas.grid(row=0, column=0, sticky="nsew")
-
 
 vertical_scroll_bar = tk.Scrollbar(
     canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg="gray"
@@ -271,18 +490,21 @@ vertical_scroll_bar = tk.Scrollbar(
 vertical_scroll_bar.grid(row=0, column=1, sticky="ns")
 canvas.configure(yscrollcommand=vertical_scroll_bar.set)
 
-
 horizontal_scroll_bar = tk.Scrollbar(
     canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg="gray"
 )
 horizontal_scroll_bar.grid(row=1, column=0, sticky="ew")
 canvas.configure(xscrollcommand=horizontal_scroll_bar.set)
 
-
 canvas_frame.grid_rowconfigure(0, weight=1)
 canvas_frame.grid_columnconfigure(0, weight=1)
 
+canvas.bind("<Control-MouseWheel>", zoom)
+canvas.bind("<Control-Button-4>", zoom)
+canvas.bind("<Control-Button-5>", zoom)
+
 canvas.bind("<MouseWheel>", on_canvas_scroll)
 canvas.bind("<Button-1>", on_canvas_click)
+
 
 app.mainloop()
