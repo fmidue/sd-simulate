@@ -1,7 +1,7 @@
 import re
-import tempfile
 import tkinter as tk
 import xml.etree.ElementTree as ET
+from io import BytesIO
 from tkinter import filedialog
 from typing import Dict, List
 
@@ -323,14 +323,13 @@ def render_uml_diagram(canvas, svg_file_path, active_state):
 
     png_data = cairosvg.svg2png(bytestring=modified_svg_content)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_png:
-        temp_png.write(png_data)
+    png_image = Image.open(BytesIO(png_data))
 
-    image = Image.open(temp_png.name)
-    image = image.resize(
-        (int(image.width * current_scale), int(image.height * current_scale))
+    png_image = png_image.resize(
+        (int(png_image.width * current_scale), int(png_image.height * current_scale))
     )
-    photo = ImageTk.PhotoImage(image)
+
+    photo = ImageTk.PhotoImage(png_image)
     canvas.create_image(0, 0, anchor=tk.NW, image=photo)
     canvas.image = photo
 
