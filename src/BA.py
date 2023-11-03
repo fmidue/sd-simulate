@@ -74,50 +74,36 @@ def svg_path_to_coords(path_str):
     )
 
     current_x, current_y = 0, 0
-    subpath_start_x, subpath_start_y = 0, 0
 
     for command, data_str in commands:
         data = list(map(float, re.findall(r"[-+]?\d*\.\d+|[-+]?\d+", data_str)))
 
-        if command in "Mm":
-            if len(data) >= 2:
-                current_x, current_y = data[0], data[1]
-                subpath_start_x, subpath_start_y = current_x, current_y
-                x_values.append(current_x)
-                y_values.append(current_y)
+        if command in "M":
+            current_x, current_y = data[0], data[1]
+            x_values.append(current_x)
+            y_values.append(current_y)
 
-        elif command in "Ll":
-            for i in range(0, len(data), 2):
-                x, y = data[i], data[i + 1]
-                x_values.append(x)
-                y_values.append(y)
-                current_x, current_y = x, y
-
-        elif command in "Hh":
+        elif command in "h":
             for x in data:
-                x_values.append(x)
-                y_values.append(current_y)
-                current_x = x
-
-        elif command in "Vv":
-            for y in data:
+                current_x = current_x + x
                 x_values.append(current_x)
-                y_values.append(y)
-                current_y = y
 
-        elif command in "Cc":
-            pass
+        elif command in "v":
+            for y in data:
+                current_y = current_y + y
+                y_values.append(current_y)
 
-        elif command in "Zz":
-            current_x, current_y = subpath_start_x, subpath_start_y
+        elif command in "c":
+            current_x = current_x + data[4]
+            current_y = current_y + data[5]
+            x_values.append(current_x)
+            y_values.append(current_y)
 
     if x_values and y_values:
         x1 = min(x_values)
         x2 = max(x_values)
         y1 = min(y_values)
-        y2 = max(y_values) + 3
-
-        x1, y1 = x2 + x1 - 8, y2 + y1 - 7
+        y2 = max(y_values)
 
         return x1, x2, y1, y2
 
