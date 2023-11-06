@@ -14,6 +14,7 @@ debug_mode = False
 svg_file_path = None
 ACTIVE_STATE = None
 current_scale = 1.0
+canvas = None
 
 
 def identify_xml_type(root):
@@ -438,6 +439,28 @@ def zoom(event):
     render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
 
 
+def maximize_visible_canvas():
+    global current_scale, canvas
+    if not svg_file_path or not ELEMENTS:
+        return
+
+    canvas_width = canvas.winfo_width()
+    canvas_height = canvas.winfo_height()
+
+    diagram_width = max(state[1][1] for state in ELEMENTS)
+    diagram_height = max(state[1][3] for state in ELEMENTS)
+
+    if canvas_width < 1 or canvas_height < 1 or diagram_width < 1 or diagram_height < 1:
+        return
+
+    width_zoom = canvas_width / diagram_width
+    height_zoom = canvas_height / diagram_height
+
+    current_scale = min(width_zoom, height_zoom)
+
+    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
+
+
 app = tk.Tk()
 app.title("UML Diagram Viewer")
 
@@ -446,6 +469,11 @@ button_frame.pack(side=tk.TOP, fill=tk.X)
 
 load_button = tk.Button(button_frame, text="Load UML Diagram", command=choose_file)
 load_button.pack()
+
+maximize_zoom_button = tk.Button(
+    button_frame, text="Maximize Zoom", command=maximize_visible_canvas
+)
+maximize_zoom_button.pack()
 
 if debug_mode:
     toggle_button = tk.Button(
@@ -487,6 +515,8 @@ canvas_frame.grid_columnconfigure(0, weight=1)
 canvas.bind("<Control-MouseWheel>", zoom)
 canvas.bind("<Control-Button-4>", zoom)
 canvas.bind("<Control-Button-5>", zoom)
+canvas.bind("<Command-MouseWheel>", zoom)
+
 
 canvas.bind("<MouseWheel>", on_canvas_scroll)
 canvas.bind("<Button-1>", on_canvas_click)
