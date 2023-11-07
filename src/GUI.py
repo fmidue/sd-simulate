@@ -2,6 +2,7 @@ import tkinter as tk
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from tkinter import PhotoImage, filedialog
+from PIL import Image, ImageTk
 
 import cairosvg
 
