@@ -2,6 +2,7 @@
 *.cabal
 .vscode/
 .stack-work/
+__pycache__/
 stack.yaml.lock
 *.aux
 *.blg
