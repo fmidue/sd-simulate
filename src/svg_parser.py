@@ -1,20 +1,9 @@
 import re
-import tkinter as tk
 import xml.etree.ElementTree as ET
-from io import BytesIO
-from tkinter import filedialog
 from typing import Dict, List
-
-import cairosvg
-from PIL import Image, ImageTk
 
 ELEMENTS = []
 STATE_HIERARCHY: Dict[str, List[str]] = {}
-debug_mode = False
-svg_file_path = None
-ACTIVE_STATE = None
-current_scale = 1.0
-canvas = None
 
 
 def identify_xml_type(root):
@@ -219,43 +208,6 @@ def no_colors_diagram(svg_content):
     return modified_svg_content
 
 
-def toggle_color_mode():
-    global debug_mode
-    debug_mode = not debug_mode
-    if svg_file_path:
-        render_uml_diagram(canvas, svg_file_path, active_state=None)
-
-
-def on_canvas_click(event):
-    global ACTIVE_STATE, current_scale
-
-    if not ELEMENTS:
-        return
-
-    x_offset = canvas.canvasx(0)
-    y_offset = canvas.canvasy(0)
-
-    x = (event.x + x_offset) / current_scale
-    y = (event.y + y_offset) / current_scale
-
-    xml_type = identify_xml_type(ET.parse(svg_file_path).getroot())
-
-    if xml_type == "Type1":
-        state_name = check_state_type1(x, y)
-    else:
-        state_hierarchy = check_state_type2(x, y)
-        if state_hierarchy:
-            state_name = state_hierarchy[-1]
-
-    show_popup(state_name, x, y)
-    ACTIVE_STATE = state_name
-
-    print(f"Clicked state: {state_name}")
-    marked_states = find_active_states(state_name)
-    print(f"Marked states: {marked_states}")
-    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
-
-
 def check_state(x, y):
     for element in reversed(ELEMENTS):
         x1, x2, y1, y2 = element[1]
@@ -265,11 +217,11 @@ def check_state(x, y):
 
 
 def check_state_type1(x, y):
-    print(f"Checking state for x={x}, y={y}")
+    # print(f"Checking state for x={x}, y={y}")
 
     for element in reversed(ELEMENTS):
         x1, x2, y1, y2 = element[1]
-        print(f"Checking against x1={x1}, x2={x2}, y1={y1}, y2={y2}")
+        # print(f"Checking against x1={x1}, x2={x2}, y1={y1}, y2={y2}")
         if x1 <= x <= x2 and y1 <= y <= y2:
             print(f"Matched with {element[0]}")
             return element[0]
@@ -298,67 +250,6 @@ def check_state_type2(x, y, state=None, state_hierarchy=None):
     return state_hierarchy
 
 
-def show_popup(message, x, y):
-    if debug_mode:
-        popup = tk.Toplevel()
-        popup.title("Information")
-        label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
-        label_state = tk.Label(popup, text=f"State: {message}")
-        label_coords.pack()
-        label_state.pack()
-
-
-def render_uml_diagram(canvas, svg_file_path, active_state):
-    canvas.delete("all")
-    if not svg_file_path:
-        print("No SVG file selected.")
-        return
-
-    with open(svg_file_path, "r") as svg_file:
-        svg_content = svg_file.read()
-
-    if debug_mode:
-        modified_svg_content = svg_content
-    else:
-        modified_svg_content = no_colors_diagram(svg_content)
-
-    png_data = cairosvg.svg2png(bytestring=modified_svg_content)
-
-    png_image = Image.open(BytesIO(png_data))
-
-    png_image = png_image.resize(
-        (int(png_image.width * current_scale), int(png_image.height * current_scale))
-    )
-
-    photo = ImageTk.PhotoImage(png_image)
-    canvas.create_image(0, 0, anchor=tk.NW, image=photo)
-    canvas.image = photo
-
-    if not ELEMENTS:
-        print("No elements to highlight.Only Rendering the SVG ")
-        return
-
-    if active_state:
-        marked_states = find_active_states(active_state)
-        for state, hierarchy in STATE_HIERARCHY.items():
-            if state == active_state or state in marked_states:
-                for element in ELEMENTS:
-                    if element[0] == state:
-                        x1, x2, y1, y2 = [
-                            int(coord * current_scale) for coord in element[1]
-                        ]
-                        outline_color = "red" if state != active_state else "green"
-                        outline_width = 2 if state != active_state else 3
-                        canvas.create_rectangle(
-                            x1, y1, x2, y2, outline=outline_color, width=outline_width
-                        )
-                        break
-
-    max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
-    max_y = max(ELEMENTS, key=lambda item: item[1][3])[1][3]
-    canvas.config(width=max_x + 20, height=max_y + 20)
-
-
 def find_active_states(state):
     marked_states = {state}
     for parent_state, child_states in STATE_HIERARCHY.items():
@@ -369,157 +260,9 @@ def find_active_states(state):
     return marked_states
 
 
-def Enter_state(state_name):
-    render_uml_diagram(canvas, svg_file_path, active_state=state_name)
+def get_elements():
+    return ELEMENTS
 
 
-def choose_file():
-    global svg_file_path
-    file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
-    if not file_path:
-        return
-    print("Selected File:", file_path)
-
-    tree = ET.parse(file_path)
-    root = tree.getroot()
-    xml_type = identify_xml_type(root)
-
-    if xml_type == "Type1":
-        print("Handling Type 1 XML.")
-        canvas.delete("all")
-        ELEMENTS.clear()
-        STATE_HIERARCHY.clear()
-        parse_svg(file_path)
-    elif xml_type == "Type2":
-        print("Handling Type 2 XML.")
-        canvas.delete("all")
-        ELEMENTS.clear()
-        STATE_HIERARCHY.clear()
-        parse_svg2(file_path)
-    else:
-        print("Unknown file type")
-
-    if ELEMENTS:
-        max_x = max(state[1][1] for state in ELEMENTS)
-        max_y = max(state[1][3] for state in ELEMENTS)
-        canvas.config(width=max_x + 20, height=max_y + 20)
-
-    svg_file_path = file_path
-    render_uml_diagram(canvas, file_path, active_state=None)
-    canvas.update_idletasks()
-    canvas.config(scrollregion=canvas.bbox("all"))
-
-
-def on_canvas_scroll(event):
-    shift = (event.state & 0x1) != 0
-    if shift:
-        if event.delta > 0:
-            canvas.xview_scroll(-1, "units")
-        elif event.delta < 0:
-            canvas.xview_scroll(1, "units")
-    else:
-        if event.delta > 0:
-            canvas.yview_scroll(-1, "units")
-        elif event.delta < 0:
-            canvas.yview_scroll(1, "units")
-
-
-def zoom(event):
-    global current_scale
-    scale_factor = 1.1 if event.delta > 0 else 0.9
-    current_scale *= scale_factor
-
-    x = canvas.canvasx(event.x)
-    y = canvas.canvasy(event.y)
-    canvas.scale("all", x, y, scale_factor, scale_factor)
-
-    scroll_x1, scroll_y1, scroll_x2, scroll_y2 = canvas.bbox("all")
-    canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
-
-    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
-
-
-def maximize_visible_canvas():
-    global current_scale, canvas
-    if not svg_file_path or not ELEMENTS:
-        return
-
-    canvas_width = canvas.winfo_width()
-    canvas_height = canvas.winfo_height()
-
-    diagram_width = max(state[1][1] for state in ELEMENTS)
-    diagram_height = max(state[1][3] for state in ELEMENTS)
-
-    if canvas_width < 1 or canvas_height < 1 or diagram_width < 1 or diagram_height < 1:
-        return
-
-    width_zoom = canvas_width / diagram_width
-    height_zoom = canvas_height / diagram_height
-
-    current_scale = min(width_zoom, height_zoom)
-
-    render_uml_diagram(canvas, svg_file_path, active_state=ACTIVE_STATE)
-
-
-app = tk.Tk()
-app.title("UML Diagram Viewer")
-
-button_frame = tk.Frame(app)
-button_frame.pack(side=tk.TOP, fill=tk.X)
-
-load_button = tk.Button(button_frame, text="Load UML Diagram", command=choose_file)
-load_button.pack()
-
-maximize_zoom_button = tk.Button(
-    button_frame, text="Maximize Zoom", command=maximize_visible_canvas
-)
-maximize_zoom_button.pack()
-
-if debug_mode:
-    toggle_button = tk.Button(
-        button_frame, text="Toggle Color Mode", command=toggle_color_mode
-    )
-    toggle_button.pack()
-
-state_name_entry = tk.Entry(button_frame)
-state_name_entry.pack()
-highlight_button = tk.Button(
-    button_frame,
-    text="Enter state name",
-    command=lambda: Enter_state(state_name_entry.get()),
-)
-highlight_button.pack()
-
-
-canvas_frame = tk.Frame(app)
-canvas_frame.pack(fill=tk.BOTH, expand=True)
-
-canvas = tk.Canvas(canvas_frame, bg="white")
-canvas.grid(row=0, column=0, sticky="nsew")
-
-vertical_scroll_bar = tk.Scrollbar(
-    canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg="gray"
-)
-vertical_scroll_bar.grid(row=0, column=1, sticky="ns")
-canvas.configure(yscrollcommand=vertical_scroll_bar.set)
-
-horizontal_scroll_bar = tk.Scrollbar(
-    canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg="gray"
-)
-horizontal_scroll_bar.grid(row=1, column=0, sticky="ew")
-canvas.configure(xscrollcommand=horizontal_scroll_bar.set)
-
-canvas_frame.grid_rowconfigure(0, weight=1)
-canvas_frame.grid_columnconfigure(0, weight=1)
-
-canvas.bind("<Control-MouseWheel>", zoom)
-canvas.bind("<Control-Button-4>", zoom)
-canvas.bind("<Control-Button-5>", zoom)
-canvas.bind("<Command-MouseWheel>", zoom)
-
-
-canvas.bind("<MouseWheel>", on_canvas_scroll)
-canvas.bind("<Button-1>", on_canvas_click)
-
-
-app.mainloop()
+def get_hierarchy():
+    return STATE_HIERARCHY
