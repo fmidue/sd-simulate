@@ -1,6 +1,13 @@
 import tkinter as tk
-from GUI import (Enter_state, choose_file, maximize_visible_canvas,
-                 on_canvas_click, on_canvas_scroll, toggle_color_mode, zoom)
+from GUI import (
+    Enter_state,
+    choose_file,
+    maximize_visible_canvas,
+    on_canvas_click,
+    on_canvas_scroll,
+    toggle_color_mode,
+    zoom,
+)
 
 debug_mode = False
 
