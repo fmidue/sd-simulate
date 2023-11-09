@@ -2,12 +2,14 @@ import tkinter as tk
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from tkinter import PhotoImage, filedialog
-from PIL import Image, ImageTk
 
 import cairosvg
+from PIL import Image
 
-from svg_parser import (check_state_type1, check_state_type2, find_active_states, get_elements, get_hierarchy,
-                        identify_xml_type, no_colors_diagram, parse_svg, parse_svg2)
+from svg_parser import (check_state_type1, check_state_type2,
+                        find_active_states, get_elements, get_hierarchy,
+                        identify_xml_type, no_colors_diagram, parse_svg,
+                        parse_svg2)
 
 ACTIVE_STATE = None
 current_scale = 1.0

@@ -1,14 +1,11 @@
 import tkinter as tk
-
-from GUI import (Enter_state, choose_file, maximize_visible_canvas, on_canvas_click, on_canvas_scroll,
-                 toggle_color_mode, zoom)
+from GUI import (Enter_state, choose_file, maximize_visible_canvas,
+                 on_canvas_click, on_canvas_scroll, toggle_color_mode, zoom)
 
 debug_mode = False
 
-
 app = tk.Tk()
 app.title("UML Diagram Viewer")
-
 
 button_frame = tk.Frame(app)
 button_frame.pack(side=tk.TOP, fill=tk.X)
@@ -21,14 +18,15 @@ load_button.pack()
 canvas_frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
-canvas = tk.Canvas(canvas_frame, bg="white")
+canvas: tk.Canvas = tk.Canvas(canvas_frame, bg="white")
+
 canvas.grid(row=0, column=0, sticky="nsew")
 
 if debug_mode:
     toggle_button = tk.Button(
         button_frame,
         text="Toggle Color Mode",
-        command=lambda c=canvas: toggle_color_mode(c),
+        command=lambda: toggle_color_mode(canvas),
     )
     toggle_button.pack()
 
@@ -37,15 +35,14 @@ state_name_entry.pack()
 highlight_button = tk.Button(
     button_frame,
     text="Enter state name",
-    command=lambda c=canvas: Enter_state(state_name_entry.get(), c),
+    command=lambda: Enter_state(state_name_entry.get(), canvas),
 )
 highlight_button.pack()
-
 
 maximize_zoom_button = tk.Button(
     button_frame,
     text="Maximize Zoom",
-    command=lambda c=canvas: maximize_visible_canvas(c),
+    command=lambda: maximize_visible_canvas(canvas),
 )
 maximize_zoom_button.pack()
 
@@ -64,13 +61,12 @@ canvas.configure(xscrollcommand=horizontal_scroll_bar.set)
 canvas_frame.grid_rowconfigure(0, weight=1)
 canvas_frame.grid_columnconfigure(0, weight=1)
 
-canvas.bind("<Control-MouseWheel>", lambda event, c=canvas: zoom(event, c))
-canvas.bind("<Control-Button-4>", lambda event, c=canvas: zoom(event, c))
-canvas.bind("<Control-Button-5>", lambda event, c=canvas: zoom(event, c))
-canvas.bind("<Command-MouseWheel>", lambda event, c=canvas: zoom(event, c))
+canvas.bind("<Control-MouseWheel>", lambda event: zoom(event, canvas))
+canvas.bind("<Control-Button-4>", lambda event: zoom(event, canvas))
+canvas.bind("<Control-Button-5>", lambda event: zoom(event, canvas))
+canvas.bind("<Command-MouseWheel>", lambda event: zoom(event, canvas))
 
-canvas.bind("<MouseWheel>", lambda event, c=canvas: on_canvas_scroll(event, c))
-canvas.bind("<Button-1>", lambda event, c=canvas: on_canvas_click(event, c))
-
+canvas.bind("<MouseWheel>", lambda event: on_canvas_scroll(event, canvas))
+canvas.bind("<Button-1>", lambda event: on_canvas_click(event, canvas))
 
 app.mainloop()
