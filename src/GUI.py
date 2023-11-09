@@ -3,6 +3,7 @@ import tkinter as tk
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from tkinter import PhotoImage, filedialog
+
 import cairosvg
 from PIL import Image
 from svg_parser import (
