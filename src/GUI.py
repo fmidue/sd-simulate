@@ -1,11 +1,10 @@
+import os
 import tkinter as tk
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from tkinter import PhotoImage, filedialog
-
 import cairosvg
 from PIL import Image
-
 from svg_parser import (
     check_state_type1,
     check_state_type2,
@@ -13,7 +12,6 @@ from svg_parser import (
     get_elements,
     get_hierarchy,
     identify_xml_type,
-    no_colors_diagram,
     parse_svg,
     parse_svg2,
 )
@@ -21,6 +19,7 @@ from svg_parser import (
 ACTIVE_STATE = None
 current_scale = 1.0
 debug_mode = False
+xml_type = None
 
 
 def on_canvas_click(event, canvas):
@@ -34,8 +33,6 @@ def on_canvas_click(event, canvas):
 
     x = (event.x + x_offset) / current_scale
     y = (event.y + y_offset) / current_scale
-
-    xml_type = identify_xml_type(ET.parse(svg_file_path).getroot())
 
     if xml_type == "Type1":
         state_name = check_state_type1(x, y)
@@ -65,6 +62,19 @@ def show_popup(message, x, y):
         label_state.pack()
 
 
+def get_modified_svg_content():
+    if debug_mode:
+        selected_svg_file = svg_rainbow_file_path
+    else:
+        selected_svg_file = svg_file_path
+
+    if selected_svg_file and os.path.exists(selected_svg_file):
+        with open(selected_svg_file, "r") as svg_file:
+            return svg_file.read()
+    else:
+        return None
+
+
 def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
@@ -73,50 +83,55 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
         print("No SVG file selected.")
         return
 
-    with open(svg_file_path, "r") as svg_file:
-        svg_content = svg_file.read()
+    modified_svg_content = get_modified_svg_content()
 
-    if debug_mode:
-        modified_svg_content = svg_content
-    else:
-        modified_svg_content = no_colors_diagram(svg_content)
+    if modified_svg_content:
+        png_data = cairosvg.svg2png(
+            bytestring=modified_svg_content, scale=current_scale
+        )
+        image = PhotoImage(data=png_data)
 
-    png_data = cairosvg.svg2png(bytestring=modified_svg_content, scale=current_scale)
-    image = PhotoImage(data=png_data)
+        png_image = Image.open(BytesIO(png_data))
 
-    png_image = Image.open(BytesIO(png_data))
+        png_image = png_image.resize(
+            (
+                int(png_image.width * current_scale),
+                int(png_image.height * current_scale),
+            )
+        )
 
-    png_image = png_image.resize(
-        (int(png_image.width * current_scale), int(png_image.height * current_scale))
-    )
+        canvas.delete("all")
+        canvas.create_image(0, 0, anchor="nw", image=image)
+        canvas.image = image
 
-    canvas.delete("all")
-    canvas.create_image(0, 0, anchor="nw", image=image)
-    canvas.image = image
+        if not ELEMENTS:
+            print("No elements to highlight. Only Rendering the SVG")
+            return
 
-    if not ELEMENTS:
-        print("No elements to highlight.Only Rendering the SVG ")
-        return
+        if active_state:
+            marked_states = find_active_states(active_state)
+            for state, hierarchy in STATE_HIERARCHY.items():
+                if state == active_state or state in marked_states:
+                    for element in ELEMENTS:
+                        if element[0] == state:
+                            x1, x2, y1, y2 = [
+                                int(coord * current_scale) for coord in element[1]
+                            ]
+                            outline_color = "red" if state != active_state else "green"
+                            outline_width = 2 if state != active_state else 3
+                            canvas.create_rectangle(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                outline=outline_color,
+                                width=outline_width,
+                            )
+                            break
 
-    if active_state:
-        marked_states = find_active_states(active_state)
-        for state, hierarchy in STATE_HIERARCHY.items():
-            if state == active_state or state in marked_states:
-                for element in ELEMENTS:
-                    if element[0] == state:
-                        x1, x2, y1, y2 = [
-                            int(coord * current_scale) for coord in element[1]
-                        ]
-                        outline_color = "red" if state != active_state else "green"
-                        outline_width = 2 if state != active_state else 3
-                        canvas.create_rectangle(
-                            x1, y1, x2, y2, outline=outline_color, width=outline_width
-                        )
-                        break
-
-    max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
-    max_y = max(ELEMENTS, key=lambda item: item[1][3])[1][3]
-    canvas.config(width=max_x + 20, height=max_y + 20)
+        max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
+        max_y = max(ELEMENTS, key=lambda item: item[1][3])[1][3]
+        canvas.config(width=max_x + 20, height=max_y + 20)
 
 
 def Enter_state(state_name, canvas):
@@ -128,13 +143,25 @@ def Enter_state(state_name, canvas):
 def choose_file(canvas):
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
-    global svg_file_path
+    global svg_file_path, xml_type, svg_rainbow_file_path
+
     file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
     if not file_path:
         return
     print("Selected File:", file_path)
 
-    tree = ET.parse(file_path)
+    if file_path.endswith("_rainbow.svg"):
+        svg_rainbow_file_path = file_path
+        svg_file_path = file_path.replace("_rainbow.svg", ".svg")
+    else:
+        svg_file_path = file_path
+        svg_rainbow_file_path = file_path.replace(".svg", "_rainbow.svg")
+
+    if not os.path.isfile(svg_file_path) or not os.path.isfile(svg_rainbow_file_path):
+        print("You don't have both file types needed.")
+        return
+
+    tree = ET.parse(svg_rainbow_file_path)
     root = tree.getroot()
     xml_type = identify_xml_type(root)
 
@@ -143,13 +170,13 @@ def choose_file(canvas):
         canvas.delete("all")
         ELEMENTS.clear()
         STATE_HIERARCHY.clear()
-        parse_svg(file_path)
+        parse_svg(svg_rainbow_file_path)
     elif xml_type == "Type2":
         print("Handling Type 2 XML.")
         canvas.delete("all")
         ELEMENTS.clear()
         STATE_HIERARCHY.clear()
-        parse_svg2(file_path)
+        parse_svg2(svg_rainbow_file_path)
     else:
         print("Unknown file type")
 
@@ -158,7 +185,6 @@ def choose_file(canvas):
         max_y = max(state[1][3] for state in ELEMENTS)
         canvas.config(width=max_x + 20, height=max_y + 20)
 
-    svg_file_path = file_path
     render_uml_diagram(canvas, svg_file_path, active_state=None, debug_mode=debug_mode)
     canvas.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
@@ -224,7 +250,9 @@ def maximize_visible_canvas(canvas):
 def toggle_color_mode(canvas):
     global debug_mode
     debug_mode = not debug_mode
-    if svg_file_path:
+    modified_svg_content = get_modified_svg_content()
+
+    if modified_svg_content:
         render_uml_diagram(
             canvas, svg_file_path, active_state=None, debug_mode=debug_mode
         )

@@ -191,23 +191,6 @@ def build_state_hierarchy(states):
     return hierarchy
 
 
-def no_colors_diagram(svg_content):
-    root = ET.fromstring(svg_content)
-    text_elements = root.findall(".//{http://www.w3.org/2000/svg}text")
-    rect_elements = root.findall(".//{http://www.w3.org/2000/svg}rect")
-    line_elements = root.findall(".//{http://www.w3.org/2000/svg}line")
-
-    for text_element in text_elements:
-        text_element.set("fill", "#000000")
-    for element in rect_elements + line_elements:
-        style = element.get("style")
-        style = style.replace("stroke:#", "stroke:#000000;")
-        element.set("style", style)
-
-    modified_svg_content = ET.tostring(root, encoding="unicode")
-    return modified_svg_content
-
-
 def check_state(x, y):
     for element in reversed(ELEMENTS):
         x1, x2, y1, y2 = element[1]
