@@ -21,6 +21,7 @@ ACTIVE_STATE = None
 current_scale = 1.0
 debug_mode = False
 xml_type = None
+loaded_svg_content = None
 
 
 def on_canvas_click(event, canvas):
@@ -64,6 +65,7 @@ def show_popup(message, x, y):
 
 
 def get_modified_svg_content():
+    global svg_file_path, svg_rainbow_file_path
     if debug_mode:
         selected_svg_file = svg_rainbow_file_path
     else:
@@ -77,6 +79,8 @@ def get_modified_svg_content():
 
 
 def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
+    global loaded_svg_content
+    print("Rendering UML diagram using existing content.")
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
     canvas.delete("all")
@@ -84,7 +88,7 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
         print("No SVG file selected.")
         return
 
-    modified_svg_content = get_modified_svg_content()
+    modified_svg_content = loaded_svg_content
 
     if modified_svg_content:
         png_data = cairosvg.svg2png(
@@ -142,9 +146,9 @@ def Enter_state(state_name, canvas):
 
 
 def choose_file(canvas):
+    global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
-    global svg_file_path, xml_type, svg_rainbow_file_path
 
     file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
     if not file_path:
@@ -162,6 +166,8 @@ def choose_file(canvas):
         print("You don't have both file types needed.")
         return
 
+    loaded_svg_content = get_modified_svg_content()
+    print("Loaded new SVG content.")
     tree = ET.parse(svg_rainbow_file_path)
     root = tree.getroot()
     xml_type = identify_xml_type(root)
@@ -249,11 +255,15 @@ def maximize_visible_canvas(canvas):
 
 
 def toggle_color_mode(canvas):
-    global debug_mode
-    debug_mode = not debug_mode
-    modified_svg_content = get_modified_svg_content()
+    global debug_mode, loaded_svg_content
 
-    if modified_svg_content:
+    debug_mode = not debug_mode
+
+    loaded_svg_content = get_modified_svg_content()
+
+    print(f"Loaded SVG Content Updated: {loaded_svg_content is not None}")
+
+    if loaded_svg_content:
         render_uml_diagram(
             canvas, svg_file_path, active_state=None, debug_mode=debug_mode
         )
