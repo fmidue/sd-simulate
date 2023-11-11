@@ -233,13 +233,22 @@ def check_state_type2(x, y, state=None, state_hierarchy=None):
     return state_hierarchy
 
 
-def find_active_states(state):
+def find_active_states(state, visited=None):
+    if visited is None:
+        visited = set()
+
+    if state in visited:
+        return set()
+
+    visited.add(state)
     marked_states = {state}
+
     for parent_state, child_states in STATE_HIERARCHY.items():
         if state in child_states:
-            marked_states.add(parent_state)
             print(f"Marked state: {parent_state}")
-            marked_states.update(find_active_states(parent_state))
+            marked_states.add(parent_state)
+            marked_states.update(find_active_states(parent_state, visited))
+
     return marked_states
 
 
