@@ -22,6 +22,8 @@ current_scale = 1.0
 debug_mode = False
 xml_type = None
 loaded_svg_content = None
+MIN_WIDTH = 1
+MIN_HEIGHT = 1
 
 
 def on_canvas_click(event, canvas):
@@ -91,6 +93,13 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
     modified_svg_content = loaded_svg_content
 
     if modified_svg_content:
+        if (
+            current_scale * max(ELEMENTS, key=lambda item: item[1][1])[1][1] < MIN_WIDTH
+            or current_scale * max(ELEMENTS, key=lambda item: item[1][3])[1][3]
+            < MIN_HEIGHT
+        ):
+            print("SVG dimensions too small for rendering.")
+            return
         png_data = cairosvg.svg2png(
             bytestring=modified_svg_content, scale=current_scale
         )
@@ -98,12 +107,16 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 
         png_image = Image.open(BytesIO(png_data))
 
-        png_image = png_image.resize(
-            (
-                int(png_image.width * current_scale),
-                int(png_image.height * current_scale),
-            )
-        )
+        new_width = max(int(png_image.width * current_scale), MIN_WIDTH)
+        new_height = max(int(png_image.height * current_scale), MIN_HEIGHT)
+
+        print(f"Resizing to Width: {new_width}, Height: {new_height}")
+
+        if new_width <= 0 or new_height <= 0:
+            print("Invalid image dimensions for resize.")
+            return
+
+        png_image = png_image.resize((new_width, new_height))
 
         canvas.delete("all")
         canvas.create_image(0, 0, anchor="nw", image=image)
@@ -213,17 +226,30 @@ def on_canvas_scroll(event, canvas):
 
 def zoom(event, canvas):
     if event.state & 0x4:
+        ELEMENTS = get_elements()
         global current_scale
         scale_factor = 1.1 if event.delta > 0 else 0.9
-        current_scale *= scale_factor
 
-        x = canvas.canvasx(event.x)
-        y = canvas.canvasy(event.y)
-        canvas.scale("all", x, y, scale_factor, scale_factor)
+        new_scale = current_scale * scale_factor
+
+        if (
+            new_scale * max(ELEMENTS, key=lambda item: item[1][1])[1][1] < MIN_WIDTH
+            or new_scale * max(ELEMENTS, key=lambda item: item[1][3])[1][3] < MIN_HEIGHT
+        ):
+            print("Zoom limit reached.")
+            return
+
+        current_scale = new_scale
+        canvas.scale("all", event.x, event.y, scale_factor, scale_factor)
 
         scroll_x1, scroll_y1, scroll_x2, scroll_y2 = canvas.bbox("all")
-        canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
-
+        if (
+            scroll_x1 is not None
+            and scroll_y1 is not None
+            and scroll_x2 is not None
+            and scroll_y2 is not None
+        ):
+            canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
         render_uml_diagram(
             canvas, svg_file_path, active_state=ACTIVE_STATE, debug_mode=debug_mode
         )
@@ -235,19 +261,34 @@ def maximize_visible_canvas(canvas):
     if not svg_file_path or not ELEMENTS:
         return
 
+    canvas.update_idletasks()
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
+
+    print(f"Canvas Width: {canvas_width}, Canvas Height: {canvas_height}")
 
     diagram_width = max(state[1][1] for state in ELEMENTS)
     diagram_height = max(state[1][3] for state in ELEMENTS)
 
-    if canvas_width < 1 or canvas_height < 1 or diagram_width < 1 or diagram_height < 1:
+    print(f"Diagram Width: {diagram_width}, Diagram Height: {diagram_height}")
+
+    if diagram_width <= 0 or diagram_height <= 0:
+        print("Invalid diagram dimensions.")
         return
 
-    width_zoom = canvas_width / diagram_width
-    height_zoom = canvas_height / diagram_height
+    width_zoom = max(canvas_width / diagram_width, 0.01)
+    height_zoom = max(canvas_height / diagram_height, 0.01)
 
-    current_scale = min(width_zoom, height_zoom)
+    proposed_scale = min(width_zoom, height_zoom)
+
+    if (diagram_width * proposed_scale < MIN_WIDTH) or (
+        diagram_height * proposed_scale < MIN_HEIGHT
+    ):
+        min_width_scale = MIN_WIDTH / diagram_width
+        min_height_scale = MIN_HEIGHT / diagram_height
+        current_scale = max(min_width_scale, min_height_scale)
+    else:
+        current_scale = proposed_scale
 
     render_uml_diagram(
         canvas, svg_file_path, active_state=ACTIVE_STATE, debug_mode=debug_mode
