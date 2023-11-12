@@ -297,6 +297,7 @@ def maximize_visible_canvas(canvas):
     canvas.yview_moveto(0)
     canvas.xview_moveto(0)
 
+
 def toggle_color_mode(canvas):
     global debug_mode, loaded_svg_content
 
