@@ -294,6 +294,8 @@ def maximize_visible_canvas(canvas):
         canvas, svg_file_path, active_state=ACTIVE_STATE, debug_mode=debug_mode
     )
 
+    canvas.yview_moveto(0)
+    canvas.xview_moveto(0)
 
 def toggle_color_mode(canvas):
     global debug_mode, loaded_svg_content
