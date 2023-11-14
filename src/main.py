@@ -34,13 +34,13 @@ canvas.grid(row=0, column=0, sticky="nsew")
 state_name_entry: Entry = tk.Entry(right_button_frame)
 highlight_button: Button = tk.Button(
     right_button_frame,
-    text="Enter state name",
+    text="Enter State Name",
     state="disabled",
     command=lambda: Enter_state(state_name_entry.get(), canvas),
 )
 maximize_zoom_button: Button = tk.Button(
     right_button_frame,
-    text="Maximize Zoom",
+    text="Full View",
     state="disabled",
     command=lambda: maximize_visible_canvas(canvas),
 )
