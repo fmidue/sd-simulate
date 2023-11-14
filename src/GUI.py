@@ -3,8 +3,8 @@ import re
 import tkinter as tk
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog
-import cairosvg
 
+import cairosvg
 from svg_parser import (
     check_state_type1,
     check_state_type2,
