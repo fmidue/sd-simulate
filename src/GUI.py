@@ -134,18 +134,18 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             return
 
         current_svg_content_hash = hash(loaded_svg_content)
-        if (current_svg_content_hash != last_svg_content_hash) or (current_scale != last_scale):
-
+        if (current_svg_content_hash != last_svg_content_hash) or (
+            current_scale != last_scale
+        ):
             png_data = cairosvg.svg2png(
                 bytestring=loaded_svg_content,
                 output_width=target_width,
-                output_height=target_height
+                output_height=target_height,
             )
             image = PhotoImage(data=png_data)
             current_image = image
 
-            print(
-                f"Resizing to Width: {target_width}, Height: {target_height}")
+            print(f"Resizing to Width: {target_width}, Height: {target_height}")
 
             if target_width <= 0 or target_height <= 0:
                 print("Invalid image dimensions for resize.")
