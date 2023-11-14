@@ -1,11 +1,10 @@
 import os
+import re
 import tkinter as tk
 import xml.etree.ElementTree as ET
-from io import BytesIO
 from tkinter import PhotoImage, filedialog
-
 import cairosvg
-from PIL import Image
+
 from svg_parser import (
     check_state_type1,
     check_state_type2,
@@ -80,6 +79,29 @@ def get_modified_svg_content():
         return None
 
 
+def get_svg_dimensions(svg_content, max_dimension=10000):
+    root = ET.fromstring(svg_content)
+    width = height = None
+
+    if "width" in root.attrib and "height" in root.attrib:
+        width = float(re.sub(r"[^\d.]", "", root.attrib["width"]))
+        height = float(re.sub(r"[^\d.]", "", root.attrib["height"]))
+    elif "viewBox" in root.attrib:
+        viewbox = [float(v) for v in root.attrib["viewBox"].split()]
+        width, height = viewbox[2], viewbox[3]
+    else:
+        raise ValueError("SVG dimensions could not be determined.")
+
+    while width > max_dimension or height > max_dimension:
+        width /= 1.5
+        height /= 1.5
+        print("Reducing dimensions to fit within the maximum allowed size.")
+
+    print(f"Adjusted SVG Width: {width}, Adjusted SVG Height: {height}")
+
+    return width, height
+
+
 def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
     global loaded_svg_content
     print("Rendering UML diagram using existing content.")
@@ -92,6 +114,13 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 
     modified_svg_content = loaded_svg_content
 
+    original_width, original_height = get_svg_dimensions(loaded_svg_content)
+    target_width = original_width * current_scale
+    target_height = original_height * current_scale
+
+    target_width = max(target_width, MIN_WIDTH)
+    target_height = max(target_height, MIN_HEIGHT)
+
     if modified_svg_content:
         if (
             current_scale * max(ELEMENTS, key=lambda item: item[1][1])[1][1] < MIN_WIDTH
@@ -101,24 +130,18 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             print("SVG dimensions too small for rendering.")
             return
         png_data = cairosvg.svg2png(
-            bytestring=modified_svg_content, scale=current_scale
+            bytestring=loaded_svg_content,
+            output_width=target_width,
+            output_height=target_height,
         )
         image = PhotoImage(data=png_data)
 
-        png_image = Image.open(BytesIO(png_data))
+        print(f"Resizing to Width: {target_width}, Height: {target_height}")
 
-        new_width = max(int(png_image.width * current_scale), MIN_WIDTH)
-        new_height = max(int(png_image.height * current_scale), MIN_HEIGHT)
-
-        print(f"Resizing to Width: {new_width}, Height: {new_height}")
-
-        if new_width <= 0 or new_height <= 0:
+        if target_width <= 0 or target_height <= 0:
             print("Invalid image dimensions for resize.")
             return
 
-        png_image = png_image.resize((new_width, new_height))
-
-        canvas.delete("all")
         canvas.create_image(0, 0, anchor="nw", image=image)
         canvas.image = image
 
@@ -147,9 +170,9 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
                             )
                             break
 
-        max_x = max(ELEMENTS, key=lambda item: item[1][1])[1][1]
-        max_y = max(ELEMENTS, key=lambda item: item[1][3])[1][3]
-        canvas.config(width=max_x + 20, height=max_y + 20)
+            canvas.config(width=target_width, height=target_height)
+            canvas.update_idletasks()
+            canvas.config(scrollregion=canvas.bbox("all"))
 
 
 def Enter_state(state_name, canvas):
