@@ -242,6 +242,7 @@ def choose_file(canvas):
         parse_svg2(svg_rainbow_file_path)
     else:
         print("Unknown file type")
+        return False
 
     if ELEMENTS:
         max_x = max(state[1][1] for state in ELEMENTS)
@@ -251,7 +252,7 @@ def choose_file(canvas):
     render_uml_diagram(canvas, svg_file_path, active_state=None, debug_mode=debug_mode)
     canvas.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
-
+    return True
 
 def on_canvas_scroll(event, canvas):
     shift = (event.state & 0x1) != 0

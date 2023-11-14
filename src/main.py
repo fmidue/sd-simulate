@@ -1,5 +1,5 @@
 import tkinter as tk
-
+from tkinter import Canvas, Button, Entry, Scrollbar
 from GUI import (
     Enter_state,
     choose_file,
@@ -18,49 +18,69 @@ app.title("UML Diagram Viewer")
 button_frame = tk.Frame(app)
 button_frame.pack(side=tk.TOP, fill=tk.X)
 
-load_button = tk.Button(
-    button_frame, text="Load UML Diagram", command=lambda: choose_file(canvas)
-)
-load_button.pack()
+left_button_frame: tk.Frame = tk.Frame(button_frame)
+left_button_frame.pack(side=tk.LEFT)
 
-canvas_frame = tk.Frame(app)
+right_button_frame: tk.Frame = tk.Frame(button_frame)
+right_button_frame.pack(side=tk.RIGHT)
+
+canvas_frame: tk.Frame = tk.Frame(app)
 canvas_frame.pack(fill=tk.BOTH, expand=True)
 
-canvas: tk.Canvas = tk.Canvas(canvas_frame, bg="white")
-
+canvas: Canvas = tk.Canvas(canvas_frame, bg="white")
 canvas.grid(row=0, column=0, sticky="nsew")
 
-if debug_mode:
-    toggle_button = tk.Button(
-        button_frame,
-        text="Toggle Color Mode",
-        command=lambda: toggle_color_mode(canvas),
-    )
-    toggle_button.pack()
-
-state_name_entry = tk.Entry(button_frame)
-state_name_entry.pack()
-highlight_button = tk.Button(
-    button_frame,
+state_name_entry: Entry = tk.Entry(right_button_frame)
+highlight_button: Button = tk.Button(
+    right_button_frame,
     text="Enter state name",
+    state="disabled",
     command=lambda: Enter_state(state_name_entry.get(), canvas),
 )
-highlight_button.pack()
-
-maximize_zoom_button = tk.Button(
-    button_frame,
+maximize_zoom_button: Button = tk.Button(
+    right_button_frame,
     text="Maximize Zoom",
+    state="disabled",
     command=lambda: maximize_visible_canvas(canvas),
 )
-maximize_zoom_button.pack()
+toggle_button: Button = tk.Button(
+    right_button_frame,
+    text="Toggle Color Mode",
+    state="disabled",
+    command=lambda: toggle_color_mode(canvas),
+)
 
-vertical_scroll_bar = tk.Scrollbar(
+
+if debug_mode:
+    toggle_button.pack(side=tk.RIGHT)
+
+
+def on_file_loaded():
+    if choose_file(canvas):
+        highlight_button["state"] = "normal"
+        maximize_zoom_button["state"] = "normal"
+        if debug_mode:
+            toggle_button["state"] = "normal"
+
+
+load_button: Button = tk.Button(
+    button_frame, text="Load UML Diagram", command=on_file_loaded
+)
+load_button.pack(side=tk.LEFT, padx=(5, 50))
+
+
+state_name_entry.pack(side=tk.LEFT, padx=(0, 5))
+highlight_button.pack(side=tk.LEFT, padx=(0, 50))
+maximize_zoom_button.pack(side=tk.LEFT, padx=(0, 1))
+toggle_button.pack(padx=(0, 25))
+
+vertical_scroll_bar: Scrollbar = tk.Scrollbar(
     canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg="gray"
 )
 vertical_scroll_bar.grid(row=0, column=1, sticky="ns")
 canvas.configure(yscrollcommand=vertical_scroll_bar.set)
 
-horizontal_scroll_bar = tk.Scrollbar(
+horizontal_scroll_bar: Scrollbar = tk.Scrollbar(
     canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg="gray"
 )
 horizontal_scroll_bar.grid(row=1, column=0, sticky="ew")
