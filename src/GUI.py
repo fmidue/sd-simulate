@@ -90,8 +90,8 @@ def get_svg_dimensions(svg_content, max_dimension=10000):
         width = float(re.sub(r"[^\d.]", "", root.attrib["width"]))
         height = float(re.sub(r"[^\d.]", "", root.attrib["height"]))
     elif "viewBox" in root.attrib:
-        viewbox = [float(v) for v in root.attrib["viewBox"].split()]
-        width, height = viewbox[2], viewbox[3]
+        viewBox = [float(v) for v in root.attrib["viewBox"].split()]
+        width, height = viewBox[2], viewBox[3]
     else:
         raise ValueError("SVG dimensions could not be determined.")
 
