@@ -191,14 +191,6 @@ def build_state_hierarchy(states):
     return hierarchy
 
 
-def check_state(x, y):
-    for element in reversed(ELEMENTS):
-        x1, x2, y1, y2 = element[1]
-        if x1 <= x <= x2 and y1 <= y <= y2:
-            return element[0]
-    return "Outside"
-
-
 def check_state_type1(x, y):
     # print(f"Checking state for x={x}, y={y}")
 

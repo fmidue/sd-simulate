@@ -18,11 +18,14 @@ from svg_parser import (
 
 ACTIVE_STATE = None
 current_scale = 1.0
+last_scale = None
+last_svg_content_hash = None
 debug_mode = False
 xml_type = None
 loaded_svg_content = None
 MIN_WIDTH = 1
 MIN_HEIGHT = 1
+current_image = None
 
 
 def on_canvas_click(event, canvas):
@@ -103,7 +106,7 @@ def get_svg_dimensions(svg_content, max_dimension=10000):
 
 
 def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
-    global loaded_svg_content
+    global loaded_svg_content, last_svg_content_hash, last_scale, current_scale, current_image
     print("Rendering UML diagram using existing content.")
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
@@ -129,21 +132,38 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
         ):
             print("SVG dimensions too small for rendering.")
             return
-        png_data = cairosvg.svg2png(
-            bytestring=loaded_svg_content,
-            output_width=target_width,
-            output_height=target_height,
-        )
-        image = PhotoImage(data=png_data)
 
-        print(f"Resizing to Width: {target_width}, Height: {target_height}")
+        current_svg_content_hash = hash(loaded_svg_content)
+        if (current_svg_content_hash != last_svg_content_hash) or (current_scale != last_scale):
 
-        if target_width <= 0 or target_height <= 0:
-            print("Invalid image dimensions for resize.")
-            return
+            png_data = cairosvg.svg2png(
+                bytestring=loaded_svg_content,
+                output_width=target_width,
+                output_height=target_height
+            )
+            image = PhotoImage(data=png_data)
+            current_image = image
 
-        canvas.create_image(0, 0, anchor="nw", image=image)
-        canvas.image = image
+            print(
+                f"Resizing to Width: {target_width}, Height: {target_height}")
+
+            if target_width <= 0 or target_height <= 0:
+                print("Invalid image dimensions for resize.")
+                return
+
+            canvas.delete("all")
+            canvas.create_image(0, 0, anchor="nw", image=image)
+            canvas.image = image
+
+            last_svg_content_hash = current_svg_content_hash
+            last_scale = current_scale
+
+        else:
+            if current_image is not None:
+                canvas.delete("all")
+                canvas.create_image(0, 0, anchor="nw", image=current_image)
+            else:
+                print("No current image to render.")
 
         if not ELEMENTS:
             print("No elements to highlight. Only Rendering the SVG")
