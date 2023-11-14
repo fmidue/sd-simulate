@@ -254,6 +254,7 @@ def choose_file(canvas):
     canvas.config(scrollregion=canvas.bbox("all"))
     return True
 
+
 def on_canvas_scroll(event, canvas):
     shift = (event.state & 0x1) != 0
     if shift:

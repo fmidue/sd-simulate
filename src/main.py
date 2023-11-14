@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import Canvas, Button, Entry, Scrollbar
+from tkinter import Button, Canvas, Entry, Scrollbar
+
 from GUI import (
     Enter_state,
     choose_file,
