@@ -1,24 +1,24 @@
 @startuml
 <style>
 .A {
-  FontColor #ee54ea
-  LineColor #ee54ea
+  FontColor #3ec88f
+  LineColor #3ec88f
 }
 .B {
-  FontColor #d40c2a
-  LineColor #d40c2a
+  FontColor #ae01f8
+  LineColor #ae01f8
 }
-. {
-  FontColor #b97c16
-  LineColor #b97c16
+.Compound {
+  FontColor #36c34f
+  LineColor #36c34f
 }
 .C {
-  FontColor #91e279
-  LineColor #91e279
+  FontColor #16850f
+  LineColor #16850f
 }
 .D {
-  FontColor #bbe1c5
-  LineColor #bbe1c5
+  FontColor #75be04
+  LineColor #75be04
 }
 </style>
 
@@ -27,7 +27,7 @@
 
 state "A" as N_1 <<A>>
 state "B" as N_2 <<B>>
-state "EmptyName" as N_3{
+state "Compound" as N_3 <<Compound>>{
 
 state "C" as N_3_1 <<C>>
 state "D" as N_3_2 <<D>>
@@ -42,7 +42,10 @@ N_3_2 --> N_3_1 : d
 
 N_1 --> N_2 : f
 N_1 --> N_3 : a
+N_1 --> N_3_1 : y
+N_1 --> N_3_2 : z
 N_2 --> N_3_2 : b
+N_2 --> N_3_2 : x
 N_3 --> N_1 : e
 
 @enduml
