@@ -39,6 +39,7 @@ multicolumn
 nsew
 oneof
 padx
+pady
 pagebreak
 println
 readerlatex
