@@ -1,10 +1,9 @@
 import os
 import re
 import tkinter as tk
+import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
-import tkinter.simpledialog
-
 
 import cairosvg
 from svg_parser import (

@@ -7,11 +7,11 @@ from GUI import (
     maximize_visible_canvas,
     on_canvas_click,
     on_canvas_scroll,
-    show_hints,
     reset_trace,
+    show_hints,
     toggle_color_mode,
-    update_transition_display,
     undo_last_transition,
+    update_transition_display,
     zoom,
 )
 
@@ -47,8 +47,6 @@ transition_trace_label = tk.Label(
 )
 transition_trace_label.pack()
 
-right_trace_frame: tk.Frame = tk.Frame(trace_frame)
-right_trace_frame.pack(side=tk.RIGHT)
 
 hint_button = tk.Button(
     right_trace_frame, text="Hint", command=lambda: show_hints(canvas)
