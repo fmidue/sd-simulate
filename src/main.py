@@ -15,7 +15,6 @@ from GUI import (
     zoom,
 )
 
-
 debug_mode = False
 
 app = tk.Tk()
