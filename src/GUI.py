@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
+import logging
 
 import cairosvg
 from svg_parser import (
@@ -17,7 +18,6 @@ from svg_parser import (
     parse_svg2,
 )
 
-ACTIVE_STATE = None
 current_scale = 1.0
 last_scale = None
 last_svg_content_hash = None
@@ -44,72 +44,128 @@ current_state = "A"
 
 
 def on_canvas_click(event, canvas, transition_trace_label, reset_button, undo_button):
-    global current_state, transition_trace
-    ELEMENTS = get_elements()
-    if not ELEMENTS:
-        return
+    try:
+        global current_state, transition_trace
+        ELEMENTS = get_elements()
+        STATE_HIERARCHY = get_hierarchy()
 
-    x_offset = canvas.canvasx(0)
-    y_offset = canvas.canvasy(0)
+        if not ELEMENTS:
+            return
 
-    x = (event.x + x_offset) / current_scale
-    y = (event.y + y_offset) / current_scale
+        x_offset = canvas.canvasx(0)
+        y_offset = canvas.canvasy(0)
 
-    clicked_state = None
+        x = (event.x + x_offset) / current_scale
+        y = (event.y + y_offset) / current_scale
 
-    if xml_type == "Type1":
-        clicked_state = check_state_type1(x, y)
-    elif xml_type == "Type2":
-        state_hierarchy = check_state_type2(x, y)
-        if state_hierarchy:
-            clicked_state = state_hierarchy[-1]
-    else:
-        print("Unknown XML type")
-        return
+        clicked_state = None
 
-    if clicked_state != "Outside":
-        allowed_transitions = transitions.get(current_state, {})
-        print(
-            f"Clicked State: {clicked_state}, Allowed Transitions: {allowed_transitions}"
-        )
+        if xml_type == "Type1":
+            clicked_state = check_state_type1(x, y)
+        elif xml_type == "Type2":
+            state_hierarchy = check_state_type2(x, y)
+            if state_hierarchy:
+                clicked_state = state_hierarchy[-1]
+        else:
+            print("Unknown XML type")
+            return
 
-        if clicked_state in allowed_transitions and isinstance(
-            allowed_transitions[clicked_state], dict
-        ):
-            chosen_transition = ask_user_for_transition(
-                allowed_transitions[clicked_state]
+        if clicked_state != "Outside":
+            allowed_transitions = transitions.get(current_state, {})
+            print(
+                f"Clicked State: {clicked_state}, Allowed Transitions: {allowed_transitions}"
             )
 
-            if chosen_transition is not None:
+            if clicked_state in allowed_transitions and isinstance(
+                allowed_transitions[clicked_state], dict
+            ):
+                print("Handling dictionary transition")
+                chosen_transition = ask_user_for_transition(
+                    allowed_transitions[clicked_state]
+                )
+
+                if chosen_transition is not None:
+                    state_stack.append(current_state)
+                    current_state = clicked_state
+                    transition_trace.append(chosen_transition)
+                    update_transition_display(
+                        transition_trace_label, reset_button, undo_button
+                    )
+                    print(f"Transition: {current_state}")
+            elif clicked_state in allowed_transitions:
+                print("Handling direct transition")
                 state_stack.append(current_state)
                 current_state = clicked_state
-                transition_trace.append(chosen_transition)
+                transition_trace.append(allowed_transitions[clicked_state])
                 update_transition_display(
                     transition_trace_label, reset_button, undo_button
                 )
                 print(f"Transition: {current_state}")
-        elif clicked_state in allowed_transitions:
-            state_stack.append(current_state)
-            current_state = clicked_state
-            transition_trace.append(allowed_transitions[clicked_state])
-            update_transition_display(transition_trace_label, reset_button, undo_button)
-            print(f"Transition: {current_state}")
-        else:
-            messagebox.showinfo(
-                "Invalid Transition",
-                f"Cannot transition from {current_state} to {clicked_state}",
-            )
-            print("Invalid transition. Ignoring click.")
-    else:
-        messagebox.showinfo("Clicked Outside", "Please choose a valid state")
-        print("Outside")
+            else:
+                if clicked_state in STATE_HIERARCHY:
+                    print("Handling compound state transition")
+                    children = STATE_HIERARCHY[clicked_state]
+                    print(f"children: {children}")
+                    allowed_transitions_from_children = {}
 
-    show_popup(clicked_state, x, y)
-    marked_states = find_active_states(clicked_state)
-    print(f"Marked states: {marked_states}")
-    render_uml_diagram(
-        canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
-    )
+                    for child in children:
+                        if child in allowed_transitions:
+                            child_transitions = allowed_transitions[child]
+                            if isinstance(child_transitions, dict):
+                                for (
+                                    option,
+                                    transition_label,
+                                ) in child_transitions.items():
+                                    option_key = option
+                                    print(
+                                        f"Child: {child} - Transition_label: {option}"
+                                    )
+                                    allowed_transitions_from_children[
+                                        option_key
+                                    ] = child
+                            else:
+                                allowed_transitions_from_children[
+                                    child_transitions
+                                ] = child
+                        print(
+                            f"allowed_transitions_from_children: {allowed_transitions_from_children}"
+                        )
+
+                    if allowed_transitions_from_children:
+                        chosen_transition = ask_user_for_transition(
+                            allowed_transitions_from_children
+                        )
+                        if chosen_transition is not None:
+                            state_stack.append(current_state)
+                            next_state = allowed_transitions_from_children[
+                                chosen_transition
+                            ]
+                            print(f"next state: {next_state}")
+                            current_state = next_state
+                            transition_trace.append(chosen_transition)
+                            update_transition_display(
+                                transition_trace_label, reset_button, undo_button
+                            )
+                            print(f"Transition: {current_state}")
+                    else:
+                        print("Handling invalid transition")
+                        messagebox.showinfo(
+                            "Invalid Transition",
+                            f"Cannot transition from {current_state} to {clicked_state}",
+                        )
+                        print("Invalid transition. Ignoring click.")
+        else:
+            messagebox.showinfo("Clicked Outside", "Please choose a valid state")
+            print("Outside")
+
+        show_popup(clicked_state, x, y)
+        marked_states = find_active_states(clicked_state)
+        print(f"Marked states: {marked_states}")
+        render_uml_diagram(
+            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+        )
+    except Exception as e:
+        logging.error("Error in on_canvas_click: %s", str(e))
 
 
 def ask_user_for_transition(transitions_dict):
@@ -131,7 +187,8 @@ def ask_user_for_transition(transitions_dict):
 
 def update_transition_display(transition_trace_label, reset_button, undo_button):
     global transition_trace
-    formatted_text = "Transition Trace: " + " , ".join(transition_trace)
+    formatted_trace = [str(transition) for transition in transition_trace]
+    formatted_text = "Transition Trace: " + " , ".join(formatted_trace)
     transition_trace_label.config(text=formatted_text)
 
     reset_button["state"] = "normal" if transition_trace else "disabled"
@@ -302,7 +359,8 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 
 
 def Enter_state(state_name, canvas, transition_trace_label, reset_button, undo_button):
-    global current_state, transition_trace, ACTIVE_STATE
+    global current_state, transition_trace
+    STATE_HIERARCHY = get_hierarchy()
 
     if state_name != "Outside":
         allowed_transitions = transitions.get(current_state, {})
@@ -310,34 +368,72 @@ def Enter_state(state_name, canvas, transition_trace_label, reset_button, undo_b
             f"Clicked State: {state_name}, Allowed Transitions: {allowed_transitions}"
         )
 
-        if state_name in allowed_transitions:
-            if isinstance(allowed_transitions[state_name], dict):
-                chosen_transition = ask_user_for_transition(
-                    allowed_transitions[state_name]
-                )
+        if state_name in allowed_transitions and isinstance(
+            allowed_transitions[state_name], dict
+        ):
+            print("Handling dictionary transition")
+            chosen_transition = ask_user_for_transition(allowed_transitions[state_name])
 
-                if chosen_transition is not None:
-                    state_stack.append(current_state)
-                    current_state = state_name
-                    transition_trace.append(chosen_transition)
-                    update_transition_display(
-                        transition_trace_label, reset_button, undo_button
-                    )
-                    print(f"Transition: {current_state}")
-            else:
+            if chosen_transition is not None:
                 state_stack.append(current_state)
                 current_state = state_name
-                transition_trace.append(allowed_transitions[state_name])
+                transition_trace.append(chosen_transition)
                 update_transition_display(
                     transition_trace_label, reset_button, undo_button
                 )
                 print(f"Transition: {current_state}")
+        elif state_name in allowed_transitions:
+            print("Handling direct transition")
+            state_stack.append(current_state)
+            current_state = state_name
+            transition_trace.append(allowed_transitions[state_name])
+            update_transition_display(transition_trace_label, reset_button, undo_button)
+            print(f"Transition: {current_state}")
         else:
-            messagebox.showinfo(
-                "Invalid Transition",
-                f"Cannot transition from {current_state} to {state_name}",
-            )
-            print("Invalid transition. Ignoring click.")
+            if state_name in STATE_HIERARCHY:
+                print("Handling compound state transition")
+                children = STATE_HIERARCHY[state_name]
+                print(f"children: {children}")
+
+                allowed_transitions_from_children = {}
+
+                for child in children:
+                    if child in allowed_transitions:
+                        child_transitions = allowed_transitions[child]
+                        if isinstance(child_transitions, dict):
+                            for option, transition_label in child_transitions.items():
+                                option_key = option
+                                print(f"Child: {child} - Transition_label: {option}")
+                                allowed_transitions_from_children[option_key] = child
+                        else:
+                            allowed_transitions_from_children[child_transitions] = child
+                        print(
+                            f"allowed_transitions_from_children: {allowed_transitions_from_children}"
+                        )
+
+                if allowed_transitions_from_children:
+                    chosen_transition = ask_user_for_transition(
+                        allowed_transitions_from_children
+                    )
+                    if chosen_transition is not None:
+                        state_stack.append(current_state)
+                        next_state = allowed_transitions_from_children[
+                            chosen_transition
+                        ]
+                        print(f"next state: {next_state}")
+                        current_state = next_state
+                        transition_trace.append(chosen_transition)
+                        update_transition_display(
+                            transition_trace_label, reset_button, undo_button
+                        )
+                        print(f"Transition: {current_state}")
+                else:
+                    print("Handling invalid transition")
+                    messagebox.showinfo(
+                        "Invalid Transition",
+                        f"Cannot transition from {current_state} to {state_name}",
+                    )
+                    print("Invalid transition. Ignoring click.")
     else:
         messagebox.showinfo("Clicked Outside", "Please choose a valid state")
         print("Outside")
@@ -346,13 +442,6 @@ def Enter_state(state_name, canvas, transition_trace_label, reset_button, undo_b
     print(f"Marked states: {marked_states}")
     render_uml_diagram(
         canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
-    )
-    ACTIVE_STATE = state_name
-    print(f"Clicked state: {state_name}")
-    marked_states = find_active_states(state_name)
-    print(f"Marked states: {marked_states}")
-    render_uml_diagram(
-        canvas, svg_file_path, active_state=state_name, debug_mode=debug_mode
     )
 
 
@@ -465,7 +554,7 @@ def zoom(event, canvas):
         highlight_next_states(canvas, next_states)
 
         render_uml_diagram(
-            canvas, svg_file_path, active_state=ACTIVE_STATE, debug_mode=debug_mode
+            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
         )
 
 
@@ -505,7 +594,7 @@ def maximize_visible_canvas(canvas):
         current_scale = proposed_scale
 
     render_uml_diagram(
-        canvas, svg_file_path, active_state=ACTIVE_STATE, debug_mode=debug_mode
+        canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
     )
 
     canvas.yview_moveto(0)
