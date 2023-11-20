@@ -1,7 +1,7 @@
-import tkinter as tk
-from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
 import atexit
 import logging
+import tkinter as tk
+from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
 
 from GUI import (
     Enter_state,
@@ -17,8 +17,11 @@ from GUI import (
     zoom,
 )
 
-logging.basicConfig(filename='app.log', level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s:%(message)s')
+logging.basicConfig(
+    filename="app.log",
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s:%(message)s",
+)
 
 
 def on_exit():
@@ -83,8 +86,7 @@ def run_app():
     )
     undo_button.pack(side=tk.LEFT, padx=(0, 10))
 
-    update_transition_display(transition_trace_label,
-                              reset_button, undo_button)
+    update_transition_display(transition_trace_label, reset_button, undo_button)
 
     button_frame = tk.Frame(app)
     button_frame.pack(side=tk.TOP, fill=tk.X)
@@ -112,7 +114,7 @@ def run_app():
             transition_trace_label,
             reset_button,
             undo_button,
-            app
+            app,
         ),
     )
     maximize_zoom_button: Button = tk.Button(
