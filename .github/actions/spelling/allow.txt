@@ -9,6 +9,7 @@ Modellierung
 Programmierparadigmen
 Rightarrow
 UML
+Verdana
 bigskip
 bigvee
 bigwedge
@@ -31,6 +32,7 @@ includegraphics
 ispell
 lastline
 ldots
+levelname
 lstinputlisting
 lstlisting
 lstset
