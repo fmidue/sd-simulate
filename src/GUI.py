@@ -43,7 +43,9 @@ transitions = {
 current_state = "A"
 
 
-def on_canvas_click(event, canvas, transition_trace_label, reset_button, undo_button):
+def on_canvas_click(
+    event, canvas, transition_trace_label, reset_button, undo_button, parent
+):
     try:
         ELEMENTS = get_elements()
 
@@ -68,7 +70,9 @@ def on_canvas_click(event, canvas, transition_trace_label, reset_button, undo_bu
             print("Unknown XML type")
             return
 
-        state_handling(clicked_state, transition_trace_label, reset_button, undo_button)
+        state_handling(
+            clicked_state, transition_trace_label, reset_button, undo_button, parent
+        )
 
         show_popup(clicked_state, x, y)
         marked_states = find_active_states(clicked_state)
@@ -80,7 +84,7 @@ def on_canvas_click(event, canvas, transition_trace_label, reset_button, undo_bu
         logging.error("Error in on_canvas_click: %s", str(e))
 
 
-def state_handling(state, transition_trace_label, reset_button, undo_button):
+def state_handling(state, transition_trace_label, reset_button, undo_button, parent):
     global current_state, transition_trace
     STATE_HIERARCHY = get_hierarchy()
 
@@ -92,7 +96,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button):
             allowed_transitions[state], dict
         ):
             print("Handling dictionary transition")
-            chosen_transition = ask_user_for_transition(allowed_transitions[state])
+            chosen_transition = ask_user_for_transition(
+                allowed_transitions[state], parent
+            )
 
             if chosen_transition is not None:
                 state_stack.append(current_state)
@@ -133,7 +139,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button):
 
                 if allowed_transitions_from_children:
                     chosen_transition = ask_user_for_transition(
-                        allowed_transitions_from_children
+                        allowed_transitions_from_children, parent
                     )
                     if chosen_transition is not None:
                         state_stack.append(current_state)
@@ -159,21 +165,60 @@ def state_handling(state, transition_trace_label, reset_button, undo_button):
         print("Outside")
 
 
-def ask_user_for_transition(transitions_dict):
-    if not transitions_dict:
-        return None
+class TransitionDialog(tk.Toplevel):
+    def __init__(self, parent, transitions_dict):
+        super().__init__(parent)
+        self.trans_value = tk.StringVar()
+        self.selected_option = None
 
-    options = list(transitions_dict.keys())
+        first_key = next(iter(transitions_dict)) if transitions_dict else None
+        if first_key:
+            self.trans_value.set(first_key)
 
-    root = tk.Tk()
-    root.withdraw()
+        radio_button_font = ("Verdana", 9)
 
-    selected_option = tkinter.simpledialog.askstring(
-        "Choose Transition",
-        f"Select one of the following transitions: {', '.join(options)}",
-    )
+        label = tk.Label(
+            self,
+            text="Select one of the following transitions:",
+            font=radio_button_font,
+        )
+        label.pack(pady=(10, 5), padx=25)
 
-    return selected_option
+        for key, label in transitions_dict.items():
+            radio_button = tk.Radiobutton(
+                self,
+                text=key,
+                variable=self.trans_value,
+                value=key,
+                font=radio_button_font,
+            )
+            radio_button.pack(anchor=tk.W, pady=5, padx=50)
+
+        ok_button = tk.Button(
+            self, text="OK", command=self.on_ok, font=radio_button_font
+        )
+        ok_button.pack(padx=20, pady=(50, 10))
+
+        self.center_window()
+
+        self.wait_window(self)
+
+    def center_window(self):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
+    def on_ok(self):
+        self.selected_option = self.trans_value.get()
+        self.destroy()
+
+
+def ask_user_for_transition(transitions_dict, parent):
+    dialog = TransitionDialog(parent, transitions_dict)
+    return dialog.selected_option
 
 
 def update_transition_display(transition_trace_label, reset_button, undo_button):
@@ -349,8 +394,12 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             canvas.config(scrollregion=canvas.bbox("all"))
 
 
-def Enter_state(state_name, canvas, transition_trace_label, reset_button, undo_button):
-    state_handling(state_name, transition_trace_label, reset_button, undo_button)
+def Enter_state(
+    state_name, canvas, transition_trace_label, reset_button, undo_button, parent
+):
+    state_handling(
+        state_name, transition_trace_label, reset_button, undo_button, parent
+    )
 
     marked_states = find_active_states(state_name)
     print(f"Marked states: {marked_states}")
