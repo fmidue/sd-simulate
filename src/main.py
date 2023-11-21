@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
 
 from GUI import (
-    Enter_state,
+    enter_state,
     choose_file,
     maximize_visible_canvas,
     on_canvas_click,
@@ -48,7 +48,6 @@ def run_app():
     right_trace_frame: tk.Frame = tk.Frame(trace_frame)
     right_trace_frame.pack(side=tk.RIGHT)
 
-    global transition_trace_label
     transition_trace_label = tk.Label(
         left_trace_frame,
         text="Transition Trace: ",
@@ -108,7 +107,7 @@ def run_app():
         right_button_frame,
         text="Enter State Name",
         state="disabled",
-        command=lambda: Enter_state(
+        command=lambda: enter_state(
             state_name_entry.get(),
             canvas,
             transition_trace_label,

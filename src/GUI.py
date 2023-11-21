@@ -29,6 +29,8 @@ MIN_HEIGHT = 1
 current_image = None
 transition_trace = []
 state_stack = []
+is_svg_updated = False
+
 
 global transition_trace_label
 
@@ -69,14 +71,12 @@ def on_canvas_click(
         else:
             print("Unknown XML type")
             return
-
-        state_handling(
-            clicked_state, transition_trace_label, reset_button, undo_button, parent
-        )
+        if clicked_state != current_state:
+            state_handling(
+                clicked_state, transition_trace_label, reset_button, undo_button, parent
+            )
 
         show_popup(clicked_state, x, y)
-        marked_states = find_active_states(clicked_state)
-        print(f"Marked states: {marked_states}")
         render_uml_diagram(
             canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
         )
@@ -279,7 +279,8 @@ def get_svg_dimensions(svg_content, max_dimension=10000):
 
 
 def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
-    global loaded_svg_content, last_svg_content_hash, last_scale, current_scale, current_image
+    global loaded_svg_content, last_svg_content_hash, last_scale, current_scale, current_image, is_svg_updated
+    global original_width, original_height
     print("Rendering UML diagram using existing content.")
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
@@ -290,7 +291,6 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 
     modified_svg_content = loaded_svg_content
 
-    original_width, original_height = get_svg_dimensions(loaded_svg_content)
     target_width = original_width * current_scale
     target_height = original_height * current_scale
 
@@ -306,10 +306,7 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             print("SVG dimensions too small for rendering.")
             return
 
-        current_svg_content_hash = hash(loaded_svg_content)
-        if (current_svg_content_hash != last_svg_content_hash) or (
-            current_scale != last_scale
-        ):
+        if is_svg_updated or current_scale != last_scale:
             png_data = cairosvg.svg2png(
                 bytestring=loaded_svg_content,
                 output_width=target_width,
@@ -320,15 +317,11 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 
             print(f"Resizing to Width: {target_width}, Height: {target_height}")
 
-            if target_width <= 0 or target_height <= 0:
-                print("Invalid image dimensions for resize.")
-                return
-
             canvas.delete("all")
             canvas.create_image(0, 0, anchor="nw", image=image)
             canvas.image = image
 
-            last_svg_content_hash = current_svg_content_hash
+            is_svg_updated = False
             last_scale = current_scale
 
         else:
@@ -394,13 +387,13 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             canvas.config(scrollregion=canvas.bbox("all"))
 
 
-def Enter_state(
+def enter_state(
     state_name, canvas, transition_trace_label, reset_button, undo_button, parent
 ):
-    state_handling(
-        state_name, transition_trace_label, reset_button, undo_button, parent
-    )
-
+    if state_name != current_state:
+        state_handling(
+            state_name, transition_trace_label, reset_button, undo_button, parent
+        )
     marked_states = find_active_states(state_name)
     print(f"Marked states: {marked_states}")
     render_uml_diagram(
@@ -419,7 +412,8 @@ def highlight_next_states(canvas, next_states):
 
 
 def choose_file(canvas):
-    global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content
+    global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content, is_svg_updated
+    global original_width, original_height
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
 
@@ -440,6 +434,9 @@ def choose_file(canvas):
         return
 
     loaded_svg_content = get_modified_svg_content()
+    if loaded_svg_content:
+        is_svg_updated = True
+        original_width, original_height = get_svg_dimensions(loaded_svg_content)
     print("Loaded new SVG content.")
     tree = ET.parse(svg_rainbow_file_path)
     root = tree.getroot()
