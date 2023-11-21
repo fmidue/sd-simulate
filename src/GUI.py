@@ -626,9 +626,14 @@ def show_hints(canvas):
 
 
 def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
-    global transition_trace, current_state
+    global transition_trace, current_state, state_stack
+
+    current_state = state_stack[0]
+
+    state_stack.clear()
+
     transition_trace = []
-    current_state = "A"
+
     update_transition_display(transition_trace_label, reset_button, undo_button)
     render_uml_diagram(
         canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
