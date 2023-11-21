@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
 
 from GUI import (
-    enter_state,
     choose_file,
+    enter_state,
     maximize_visible_canvas,
     on_canvas_click,
     on_canvas_scroll,
