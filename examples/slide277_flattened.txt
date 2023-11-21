@@ -1,0 +1,11 @@
+[*] -> A
+A -> B : f
+A -> C : a
+A -> C : y
+A -> D : z
+B -> D : b
+B -> D : x
+C -> D : c
+C -> A : e
+D -> C : d
+D -> A : e
