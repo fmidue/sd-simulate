@@ -34,15 +34,37 @@ is_svg_updated = False
 
 global transition_trace_label
 
-transitions = {
-    "A": {"C": {"y": "Option 1", "a": "Option 2"}, "B": "f", "D": "z"},
-    "B": {"D": {"b": "Option 3", "x": "Option 4"}},
-    "C": {"D": "c", "A": "e"},
-    "D": {"C": "d", "A": "e"},
-}
 
+def read_transitions_from_file(file_path):
+    transitions = {}
+    current_state = None
+    transition_counter = {}
 
-current_state = "A"
+    with open(file_path, "r") as file:
+        for line in file.readlines():
+            line = line.strip()
+
+            if line.startswith("[*] -> "):
+                current_state = line[6:].strip()
+                transitions[current_state] = {}
+            elif "->" in line:
+                parts = line.split("->")
+                source = current_state if not parts[0].strip() else parts[0].strip()
+                dest_and_label = parts[1].strip()
+                dest, label = map(str.strip, dest_and_label.split(":"))
+
+                if source not in transitions:
+                    transitions[source] = {}
+
+                if dest not in transitions[source]:
+                    transitions[source][dest] = {label: "Option 1"}
+                else:
+                    counter = transition_counter.get((source, dest), 1)
+                    transition_counter[(source, dest)] = counter + 1
+                    option_label = f"Option {counter}"
+                    transitions[source][dest][label] = option_label
+
+    return current_state, transitions
 
 
 def on_canvas_click(
@@ -170,6 +192,12 @@ class TransitionDialog(tk.Toplevel):
         super().__init__(parent)
         self.trans_value = tk.StringVar()
         self.selected_option = None
+
+        options = list(transitions_dict.items())
+        if len(options) == 1:
+            self.selected_option = options[0][0]
+            self.destroy()
+            return
 
         first_key = next(iter(transitions_dict)) if transitions_dict else None
         if first_key:
@@ -412,26 +440,34 @@ def highlight_next_states(canvas, next_states):
 
 
 def choose_file(canvas):
-    global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content, is_svg_updated
-    global original_width, original_height
+    global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content, current_state, transitions
+    global is_svg_updated, original_width, original_height
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
 
-    file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
-    if not file_path:
-        return
-    print("Selected File:", file_path)
+    svg_file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
+    if not svg_file_path:
+        return False
 
-    if file_path.endswith("_rainbow.svg"):
-        svg_rainbow_file_path = file_path
-        svg_file_path = file_path.replace("_rainbow.svg", ".svg")
+    print("Selected SVG File:", svg_file_path)
+
+    transitions_file_path = filedialog.askopenfilename(
+        filetypes=[("Text files", "*.txt")]
+    )
+    if not transitions_file_path:
+        return False
+
+    print("Selected Transitions File:", transitions_file_path)
+
+    if svg_file_path.endswith("_rainbow.svg"):
+        svg_rainbow_file_path = svg_file_path
+        svg_file_path = svg_file_path.replace("_rainbow.svg", ".svg")
     else:
-        svg_file_path = file_path
-        svg_rainbow_file_path = file_path.replace(".svg", "_rainbow.svg")
+        svg_rainbow_file_path = svg_file_path.replace(".svg", "_rainbow.svg")
 
     if not os.path.isfile(svg_file_path) or not os.path.isfile(svg_rainbow_file_path):
         print("You don't have both file types needed.")
-        return
+        return False
 
     loaded_svg_content = get_modified_svg_content()
     if loaded_svg_content:
@@ -457,6 +493,11 @@ def choose_file(canvas):
     else:
         print("Unknown file type")
         return False
+
+    current_state, transitions = read_transitions_from_file(transitions_file_path)
+
+    print("Current State:", current_state)
+    print("Transitions:", transitions)
 
     if ELEMENTS:
         max_x = max(state[1][1] for state in ELEMENTS)
@@ -611,17 +652,12 @@ def undo_last_transition(transition_trace_label, reset_button, undo_button, canv
                 canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
             )
 
-        undo_button["state"] = "normal"
-
+            undo_button["state"] = "normal"
+        else:
+            print("State stack is empty.")
+            messagebox.showinfo("No Undo Available", "No further undo is possible.")
+            undo_button["state"] = "disabled"
     else:
         print("No transitions to undo.")
         messagebox.showinfo("No Undo Available", "No further undo is possible.")
-
-        if current_state == "A":
-            messagebox.showinfo(
-                "Initial State Reached", "The state is back to its initial state."
-            )
-        else:
-            print("Undo stopped at state:", current_state)
-
         undo_button["state"] = "disabled"
