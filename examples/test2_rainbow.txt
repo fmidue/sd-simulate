@@ -1,28 +1,28 @@
 @startuml
 <style>
 .A {
-  FontColor #228390
-  LineColor #228390
+  FontColor #1c318a
+  LineColor #1c318a
 }
 .B {
-  FontColor #c7d68f
-  LineColor #c7d68f
+  FontColor #cb522c
+  LineColor #cb522c
 }
 .C {
-  FontColor #567858
-  LineColor #567858
+  FontColor #c416da
+  LineColor #c416da
 }
 .D {
-  FontColor #3acf6a
-  LineColor #3acf6a
+  FontColor #21ddd7
+  LineColor #21ddd7
 }
 .E {
-  FontColor #06e096
-  LineColor #06e096
+  FontColor #d9e0be
+  LineColor #d9e0be
 }
 .F {
-  FontColor #703ed2
-  LineColor #703ed2
+  FontColor #0ee3c4
+  LineColor #0ee3c4
 }
 </style>
 
@@ -51,5 +51,8 @@ N_2_1 --> N_2_2 : b
 [*] -> N_1
 
 N_1 --> N_2_1 : a
+N_1 --> N_1 : x
+N_1 --> N_2_2 : y
+N_1 --> N_2_2_2 : z
 
 @enduml
