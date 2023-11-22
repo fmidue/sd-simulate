@@ -1,0 +1,12 @@
+[*] -> X()
+A(C) -> B(C) : a
+B(C) -> A(C) : f
+A(D) -> B(D) : a
+B(D) -> A(D) : f
+B(C) -> C : b
+B(D) -> D : b
+C -> D : c
+D -> C : d
+D -> A(D) : e
+C -> A(C) : e
+X() -> C : x
