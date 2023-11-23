@@ -30,7 +30,7 @@ current_image = None
 transition_trace = []
 state_stack = []
 is_svg_updated = False
-
+hints_visible = False
 
 global transition_trace_label
 
@@ -70,6 +70,7 @@ def read_transitions_from_file(file_path):
 def on_canvas_click(
     event, canvas, transition_trace_label, reset_button, undo_button, parent
 ):
+    global hints_visible
     try:
         ELEMENTS = get_elements()
 
@@ -93,6 +94,9 @@ def on_canvas_click(
         else:
             print("Unknown XML type")
             return
+
+        if clicked_state in transitions.get(current_state, {}).keys():
+            hints_visible = False
 
         state_handling(
             clicked_state, transition_trace_label, reset_button, undo_button, parent
@@ -418,6 +422,9 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 def enter_state(
     state_name, canvas, transition_trace_label, reset_button, undo_button, parent
 ):
+    global hints_visible
+    if state_name in transitions.get(current_state, {}).keys():
+        hints_visible = False
     state_handling(
         state_name, transition_trace_label, reset_button, undo_button, parent
     )
@@ -429,13 +436,29 @@ def enter_state(
 
 
 def highlight_next_states(canvas, next_states):
-    global current_scale
+    global current_scale, hints_visible
     print("Highlighting next states:", next_states)
     ELEMENTS = get_elements()
     for state, coordinates in ELEMENTS:
         if state in next_states:
             x1, x2, y1, y2 = [int(coord * current_scale) for coord in coordinates]
-            canvas.create_rectangle(x1, y1, x2, y2, outline="yellow", width=2)
+            state_width = x2 - x1
+            state_height = y2 - y1
+            state_center_x = (x1 + x2) / 2
+            state_center_y = (y1 + y2) / 2
+            circle_radius = max(state_width, state_height) / 2
+            canvas.create_oval(
+                state_center_x - circle_radius,
+                state_center_y - circle_radius,
+                state_center_x + circle_radius,
+                state_center_y + circle_radius,
+                outline="orange",
+                width=2,
+                tags="hints",
+            )
+    if hints_visible:
+        canvas.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
 
 
 def choose_file(canvas):
@@ -627,11 +650,24 @@ def toggle_color_mode(canvas):
 
 
 def show_hints(canvas):
-    global current_state, transitions
+    global current_state, transitions, hints_visible
+
     print("Show hints called")
+
     next_states = transitions.get(current_state, {}).keys()
     print("Next states:", next_states)
-    highlight_next_states(canvas, next_states)
+
+    if hints_visible:
+        clear_hints(canvas)
+        hints_visible = False
+    else:
+        highlight_next_states(canvas, next_states)
+        hints_visible = True
+
+
+def clear_hints(canvas):
+    print("Clearing hints")
+    canvas.delete("hints")
 
 
 def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
