@@ -93,10 +93,10 @@ def on_canvas_click(
         else:
             print("Unknown XML type")
             return
-        if clicked_state != current_state:
-            state_handling(
-                clicked_state, transition_trace_label, reset_button, undo_button, parent
-            )
+
+        state_handling(
+            clicked_state, transition_trace_label, reset_button, undo_button, parent
+        )
 
         show_popup(clicked_state, x, y)
         render_uml_diagram(
@@ -418,10 +418,9 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
 def enter_state(
     state_name, canvas, transition_trace_label, reset_button, undo_button, parent
 ):
-    if state_name != current_state:
-        state_handling(
-            state_name, transition_trace_label, reset_button, undo_button, parent
-        )
+    state_handling(
+        state_name, transition_trace_label, reset_button, undo_button, parent
+    )
     marked_states = find_active_states(state_name)
     print(f"Marked states: {marked_states}")
     render_uml_diagram(
@@ -445,28 +444,38 @@ def choose_file(canvas):
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
 
-    svg_file_path = filedialog.askopenfilename(filetypes=[("SVG files", "*.svg")])
-    if not svg_file_path:
-        return False
-
-    print("Selected SVG File:", svg_file_path)
-
-    transitions_file_path = filedialog.askopenfilename(
-        filetypes=[("Text files", "*.txt")]
+    file_path = filedialog.askopenfilename(
+        filetypes=[("SVG files", "*.svg"), ("Text files", "*.txt")]
     )
-    if not transitions_file_path:
+    if not file_path:
         return False
 
-    print("Selected Transitions File:", transitions_file_path)
+    _, extension = os.path.splitext(file_path)
 
-    if svg_file_path.endswith("_rainbow.svg"):
-        svg_rainbow_file_path = svg_file_path
-        svg_file_path = svg_file_path.replace("_rainbow.svg", ".svg")
+    if extension == ".svg":
+        svg_file_path = file_path
+        if "_rainbow.svg" in svg_file_path:
+            svg_rainbow_file_path = svg_file_path
+            svg_file_path = svg_rainbow_file_path.replace("_rainbow.svg", ".svg")
+        else:
+            svg_rainbow_file_path = svg_file_path.replace(".svg", "_rainbow.svg")
+        transitions_file_path = svg_file_path.replace(".svg", "_flattened.txt")
+    elif extension == ".txt":
+        transitions_file_path = file_path
+        svg_rainbow_file_path = transitions_file_path.replace(
+            "_flattened.txt", "_rainbow.svg"
+        )
+        svg_file_path = svg_rainbow_file_path.replace("_rainbow.svg", ".svg")
     else:
-        svg_rainbow_file_path = svg_file_path.replace(".svg", "_rainbow.svg")
+        print("Unsupported file type.")
+        return False
 
-    if not os.path.isfile(svg_file_path) or not os.path.isfile(svg_rainbow_file_path):
-        print("You don't have both file types needed.")
+    if (
+        not os.path.isfile(svg_file_path)
+        or not os.path.isfile(svg_rainbow_file_path)
+        or not os.path.isfile(transitions_file_path)
+    ):
+        print("You don't have all file types needed.")
         return False
 
     loaded_svg_content = get_modified_svg_content()
