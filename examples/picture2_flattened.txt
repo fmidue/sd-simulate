@@ -1,7 +1,7 @@
 [*] -> idle
-idle -> Send order request
+idle -> Send order request :
 Send order request -> Select normal or special order : Action
 Select normal or special order -> Order confirmation : Confirm order(Event)
-Order confirmation -> Dispatch order
+Order confirmation -> Dispatch order :
 Send order request -> [**] : exit
-Dispatch order! -> [**] : complete
+Dispatch order -> [**] : complete
