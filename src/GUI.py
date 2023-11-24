@@ -114,6 +114,20 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
     global current_state, transition_trace
     STATE_HIERARCHY = get_hierarchy()
 
+    def collect_all_children(state_name, hierarchy):
+        all_children = []
+        children = hierarchy.get(state_name, [])
+        for child in children:
+            print(f"CHILD TEST: {child}")
+            all_children.append(child)
+            all_children.extend(collect_all_children(child, hierarchy))
+
+        for element in all_children:
+            if hierarchy.get(element):
+                all_children.remove(element)
+
+        return all_children
+
     if state != "Outside":
         allowed_transitions = transitions.get(current_state, {})
         print(f"Clicked State: {state}, Allowed Transitions: {allowed_transitions}")
@@ -143,9 +157,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             print(f"Transition: {current_state}")
         else:
             if state in STATE_HIERARCHY:
-                print("Handling compound state transition")
-                children = STATE_HIERARCHY[state]
-                print(f"children: {children}")
+                children = collect_all_children(state, STATE_HIERARCHY)
+                print(f"All Children of {state}: {children}")
 
                 allowed_transitions_from_children = {}
 
