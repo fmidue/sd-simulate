@@ -62,7 +62,7 @@ def run_app():
     transition_trace_label.pack()
 
     hint_button = tk.Button(
-        right_trace_frame, text="Hint", command=lambda: show_hints(canvas)
+        right_trace_frame, text="Hint", state="disabled", command=lambda: show_hints(canvas)
     )
     hint_button.pack(side=tk.LEFT, padx=(5, 5))
 
@@ -138,6 +138,7 @@ def run_app():
         if choose_file(canvas, transition_trace_label, reset_button, undo_button):
             highlight_button["state"] = "normal"
             maximize_zoom_button["state"] = "normal"
+            hint_button["state"] = "normal"
             reset_button["state"] = "disabled"
             undo_button["state"] = "disabled"
             if debug_mode:

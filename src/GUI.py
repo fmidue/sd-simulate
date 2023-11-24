@@ -98,14 +98,17 @@ def on_canvas_click(
         if clicked_state in transitions.get(current_state, {}).keys():
             hints_visible = False
 
-        state_handling(
+        state_transitioned = state_handling(
             clicked_state, transition_trace_label, reset_button, undo_button, parent
         )
 
         show_popup(clicked_state, x, y)
-        render_uml_diagram(
-            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
-        )
+        if state_transitioned:
+            render_uml_diagram(
+                canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+            )
+        else:
+            print("No need to call render_uml_diagram")
     except Exception as e:
         logging.error("Error in on_canvas_click: %s", str(e))
 
@@ -113,6 +116,8 @@ def on_canvas_click(
 def state_handling(state, transition_trace_label, reset_button, undo_button, parent):
     global current_state, transition_trace
     STATE_HIERARCHY = get_hierarchy()
+
+    state_changed = False
 
     def collect_all_children(state_name, hierarchy):
         all_children = []
@@ -142,6 +147,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
             if chosen_transition is not None:
                 state_stack.append(current_state)
+                if state != current_state:
+                    state_changed = True
                 current_state = state
                 transition_trace.append(chosen_transition)
                 update_transition_display(
@@ -151,6 +158,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         elif state in allowed_transitions:
             print("Handling direct transition")
             state_stack.append(current_state)
+            if state != current_state:
+                state_changed = True
             current_state = state
             transition_trace.append(allowed_transitions[state])
             update_transition_display(transition_trace_label, reset_button, undo_button)
@@ -186,6 +195,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                             chosen_transition
                         ]
                         print(f"next state: {next_state}")
+                        if next_state != current_state:
+                            state_changed = True
                         current_state = next_state
                         transition_trace.append(chosen_transition)
                         update_transition_display(
@@ -202,6 +213,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
     else:
         messagebox.showinfo("Clicked Outside", "Please choose a valid state")
         print("Outside")
+
+    return state_changed
 
 
 class TransitionDialog(tk.Toplevel):
@@ -438,14 +451,17 @@ def enter_state(
     global hints_visible
     if state_name in transitions.get(current_state, {}).keys():
         hints_visible = False
-    state_handling(
+    state_transitioned = state_handling(
         state_name, transition_trace_label, reset_button, undo_button, parent
     )
     marked_states = find_active_states(state_name)
     print(f"Marked states: {marked_states}")
-    render_uml_diagram(
-        canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
-    )
+    if state_transitioned:
+        render_uml_diagram(
+            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+        )
+    else:
+        print("No need to call render_uml_diagram")
 
 
 def highlight_next_states(canvas, next_states):
