@@ -474,7 +474,7 @@ def highlight_next_states(canvas, next_states):
         canvas.config(scrollregion=canvas.bbox("all"))
 
 
-def choose_file(canvas):
+def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content, current_state, transitions
     global is_svg_updated, original_width, original_height
     ELEMENTS = get_elements()
@@ -516,6 +516,10 @@ def choose_file(canvas):
 
     loaded_svg_content = get_modified_svg_content()
     if loaded_svg_content:
+        current_state = None
+        transition_trace.clear()
+        state_stack.clear()
+        update_transition_display(transition_trace_label, reset_button, undo_button)
         is_svg_updated = True
         original_width, original_height = get_svg_dimensions(loaded_svg_content)
     print("Loaded new SVG content.")

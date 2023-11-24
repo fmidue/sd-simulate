@@ -85,7 +85,8 @@ def run_app():
     )
     undo_button.pack(side=tk.LEFT, padx=(0, 10))
 
-    update_transition_display(transition_trace_label, reset_button, undo_button)
+    update_transition_display(transition_trace_label,
+                              reset_button, undo_button)
 
     button_frame = tk.Frame(app)
     button_frame.pack(side=tk.TOP, fill=tk.X)
@@ -133,10 +134,12 @@ def run_app():
         toggle_button.pack(side=tk.RIGHT)
 
     def on_file_loaded():
-        if choose_file(canvas):
+        global transition_trace
+        if choose_file(canvas, transition_trace_label, reset_button, undo_button):
             highlight_button["state"] = "normal"
             maximize_zoom_button["state"] = "normal"
             reset_button["state"] = "disabled"
+            undo_button["state"] = "disabled"
             if debug_mode:
                 toggle_button["state"] = "normal"
 
