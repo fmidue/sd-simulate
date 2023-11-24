@@ -62,7 +62,10 @@ def run_app():
     transition_trace_label.pack()
 
     hint_button = tk.Button(
-        right_trace_frame, text="Hint", state="disabled", command=lambda: show_hints(canvas)
+        right_trace_frame,
+        text="Hint",
+        state="disabled",
+        command=lambda: show_hints(canvas),
     )
     hint_button.pack(side=tk.LEFT, padx=(5, 5))
 
@@ -85,8 +88,7 @@ def run_app():
     )
     undo_button.pack(side=tk.LEFT, padx=(0, 10))
 
-    update_transition_display(transition_trace_label,
-                              reset_button, undo_button)
+    update_transition_display(transition_trace_label, reset_button, undo_button)
 
     button_frame = tk.Frame(app)
     button_frame.pack(side=tk.TOP, fill=tk.X)
