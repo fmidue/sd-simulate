@@ -193,7 +193,7 @@ def run_app():
     def on_close():
         """Function to handle the window close event."""
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            logging.info("Application is exitinsg...")
+            logging.info("Application is exiting...")
             app.quit()
             app.destroy()
 

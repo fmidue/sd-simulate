@@ -31,38 +31,59 @@ transition_trace = []
 state_stack = []
 is_svg_updated = False
 hints_visible = False
+current_state = {"active": None, "remembered": None}
+
 
 global transition_trace_label
 
 
 def read_transitions_from_file(file_path):
     transitions = {}
-    current_state = None
+    current_state = {"active": None, "remembered": None}
     transition_counter = {}
+
+    def add_transition(source, dest, label):
+        active_source, remembered_source = parse_state(source)
+        active_dest, remembered_dest = parse_state(dest)
+
+        source_key = (
+            f"{active_source}({remembered_source})"
+            if remembered_source
+            else active_source
+        )
+        dest_key = (
+            f"{active_dest}({remembered_dest})" if remembered_dest else active_dest
+        )
+
+        if source_key not in transitions:
+            transitions[source_key] = {}
+
+        if dest_key not in transitions[source_key]:
+            transitions[source_key][dest_key] = {label: "Option 1"}
+        else:
+            counter = transition_counter.get((source_key, dest_key), 1) + 1
+            transition_counter[(source_key, dest_key)] = counter
+            option_label = f"Option {counter}"
+            transitions[source_key][dest_key][label] = option_label
 
     with open(file_path, "r") as file:
         for line in file.readlines():
             line = line.strip()
 
             if line.startswith("[*] -> "):
-                current_state = line[6:].strip()
-                transitions[current_state] = {}
+                state_str = line[6:].strip()
+                active, remembered = parse_state(state_str)
+                current_state["active"] = active
+                current_state["remembered"] = remembered
+                initial_state_key = f"{active}({remembered})" if remembered else active
+                transitions[initial_state_key] = {}
             elif "->" in line:
                 parts = line.split("->")
-                source = current_state if not parts[0].strip() else parts[0].strip()
+                source_str = parts[0].strip()
                 dest_and_label = parts[1].strip()
-                dest, label = map(str.strip, dest_and_label.split(":"))
+                dest_str, label = map(str.strip, dest_and_label.split(":"))
 
-                if source not in transitions:
-                    transitions[source] = {}
-
-                if dest not in transitions[source]:
-                    transitions[source][dest] = {label: "Option 1"}
-                else:
-                    counter = transition_counter.get((source, dest), 1)
-                    transition_counter[(source, dest)] = counter + 1
-                    option_label = f"Option {counter}"
-                    transitions[source][dest][label] = option_label
+                add_transition(source_str, dest_str, label)
 
     return current_state, transitions
 
@@ -79,10 +100,8 @@ def on_canvas_click(
 
         x_offset = canvas.canvasx(0)
         y_offset = canvas.canvasy(0)
-
         x = (event.x + x_offset) / current_scale
         y = (event.y + y_offset) / current_scale
-
         clicked_state = None
 
         if xml_type == "Type1":
@@ -95,22 +114,107 @@ def on_canvas_click(
             print("Unknown XML type")
             return
 
-        if clicked_state in transitions.get(current_state, {}).keys():
-            hints_visible = False
-
-        state_transitioned = state_handling(
+        state_transitioned = state_parameter(
             clicked_state, transition_trace_label, reset_button, undo_button, parent
         )
 
         show_popup(clicked_state, x, y)
         if state_transitioned:
             render_uml_diagram(
-                canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+                canvas,
+                svg_file_path,
+                active_state=current_state["active"],
+                debug_mode=debug_mode,
             )
         else:
             print("No need to call render_uml_diagram")
     except Exception as e:
         logging.error("Error in on_canvas_click: %s", str(e))
+
+
+def state_parameter(state, transition_trace_label, reset_button, undo_button, parent):
+    global hints_visible
+    STATE_HIERARCHY = get_hierarchy()
+    clicked_active, clicked_remembered = parse_state(state)
+
+    if clicked_remembered is None:
+        state = clicked_active
+    else:
+        state = f"{clicked_active}({clicked_remembered})"
+
+    print(f"ON CANVAS CLICKED STATE: {state}")
+
+    if clicked_active in STATE_HIERARCHY:
+        children = STATE_HIERARCHY.get(clicked_active, [])
+    else:
+        children = []
+
+    if (
+        state in transitions.get(current_state["active"], {})
+        or state == current_state["remembered"]
+    ):
+        print("ON CANVAS 1")
+        print(f"clicked_state: {state}")
+        hints_visible = False
+        state_transitioned = state_handling(
+            state, transition_trace_label, reset_button, undo_button, parent
+        )
+
+    elif children != []:
+        print("ON CANVAS 2")
+        print(f"ON CANVAS 2 TEST: {children}")
+        hints_visible = False
+        state_transitioned = state_handling(
+            state, transition_trace_label, reset_button, undo_button, parent
+        )
+    elif current_state["remembered"] is None:
+        print("ON CANVAS 3")
+        combined_transition_state = f"{state}({current_state['active']})"
+
+        print(f"combined_transition_state: {combined_transition_state}")
+
+        for transition in transitions.get(current_state["active"], {}):
+            print(f"ON CANVAS 2: {transition}")
+        if combined_transition_state in transitions.get(current_state["active"], {}):
+            hints_visible = False
+            state_transitioned = state_handling(
+                combined_transition_state,
+                transition_trace_label,
+                reset_button,
+                undo_button,
+                parent,
+            )
+    elif current_state["remembered"] is not None:
+        print("ON CANVAS 4")
+        combined_transition_state = f"{state}({current_state['remembered']})"
+        combined_current_state = (
+            f"{current_state['active']}({current_state['remembered']})"
+        )
+        print(
+            f"combined_transition_state: {combined_transition_state} From current state : {combined_current_state}"
+        )
+        for transition in transitions.get(combined_current_state, {}):
+            print(f"ON CANVAS 4: {transition}")
+
+        hints_visible = False
+        state_transitioned = state_handling(
+            combined_transition_state,
+            transition_trace_label,
+            reset_button,
+            undo_button,
+            parent,
+        )
+    else:
+        state_transitioned = state_handling(
+            clicked_active, transition_trace_label, reset_button, undo_button, parent
+        )
+        messagebox.showinfo(
+            "Invalid Click",
+            f"Click on {state} does not lead to a valid transition from {current_state['active']}.",
+        )
+        return
+
+    return state_transitioned
 
 
 def state_handling(state, transition_trace_label, reset_button, undo_button, parent):
@@ -133,88 +237,145 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
         return all_children
 
-    if state != "Outside":
-        allowed_transitions = transitions.get(current_state, {})
-        print(f"Clicked State: {state}, Allowed Transitions: {allowed_transitions}")
+    current = current_state
 
-        if state in allowed_transitions and isinstance(
-            allowed_transitions[state], dict
-        ):
-            print("Handling dictionary transition")
-            chosen_transition = ask_user_for_transition(
-                allowed_transitions[state], parent
-            )
+    print(f"BEFORE-> Current State : {current}")
+    print(f"BEFORE-> Clicked State: {state}")
+    current = current_state_rep(current_state)
+    state = clicked_state_rep(state)
+    print(f"AFTER-> Current State : {current}")
+    print(f"AFTER-> Clicked State : {state}")
+
+    active_clicked, remembered_clicked = parse_state(state)
+    active_current, remembered_current = parse_state(current)
+
+    if state != "Outside":
+        allowed_transitions = transitions.get(current, {})
+        print(
+            f"Clicked State: {state}, Allowed Transitions from {current}: {allowed_transitions}"
+        )
+
+        if state in allowed_transitions:
+            chosen_transition = None
+            if isinstance(allowed_transitions[state], dict):
+                print(f"Handling dictionary transition {state}")
+                chosen_transition = ask_user_for_transition(
+                    allowed_transitions[state], parent
+                )
+            else:
+                chosen_transition = allowed_transitions[state]
 
             if chosen_transition is not None:
-                state_stack.append(current_state)
-                if state != current_state:
+                print("CASE 1")
+                state_stack.append(current_state.copy())
+                if active_clicked != active_current:
                     state_changed = True
-                current_state = state
+                    print("STATE CHANGED")
+                current_state["active"] = active_clicked
+                current_state["remembered"] = remembered_clicked
                 transition_trace.append(chosen_transition)
                 update_transition_display(
                     transition_trace_label, reset_button, undo_button
                 )
                 print(f"Transition: {current_state}")
         elif state in allowed_transitions:
-            print("Handling direct transition")
-            state_stack.append(current_state)
-            if state != current_state:
+            print("CASE 2")
+            print(f"Handling direct transition {active_clicked}")
+            state_stack.append(current_state.copy())
+            if active_clicked != active_current:
                 state_changed = True
-            current_state = state
+                print("STATE CHANGED")
+            current_state["active"] = active_clicked
+            current_state["remembered"] = remembered_clicked
             transition_trace.append(allowed_transitions[state])
             update_transition_display(transition_trace_label, reset_button, undo_button)
             print(f"Transition: {current_state}")
-        else:
-            if state in STATE_HIERARCHY:
-                children = collect_all_children(state, STATE_HIERARCHY)
-                print(f"All Children of {state}: {children}")
+        elif state in STATE_HIERARCHY:
+            print("CASE 3")
+            print(
+                f"Handling transition from complex or hierarchical state: {active_current}"
+            )
+            children = collect_all_children(state, STATE_HIERARCHY)
+            print(f"All Children of {state}: {children}")
 
-                allowed_transitions_from_children = {}
+            allowed_transitions_from_children = {}
 
-                for child in children:
-                    if child in allowed_transitions:
-                        child_transitions = allowed_transitions[child]
-                        if isinstance(child_transitions, dict):
-                            for option, transition_label in child_transitions.items():
-                                option_key = option
-                                print(f"Child: {child} - Transition_label: {option}")
-                                allowed_transitions_from_children[option_key] = child
-                        else:
-                            allowed_transitions_from_children[child_transitions] = child
-                    print(
-                        f"allowed_transitions_from_children: {allowed_transitions_from_children}"
-                    )
-
-                if allowed_transitions_from_children:
-                    chosen_transition = ask_user_for_transition(
-                        allowed_transitions_from_children, parent
-                    )
-                    if chosen_transition is not None:
-                        state_stack.append(current_state)
-                        next_state = allowed_transitions_from_children[
-                            chosen_transition
-                        ]
-                        print(f"next state: {next_state}")
-                        if next_state != current_state:
-                            state_changed = True
-                        current_state = next_state
-                        transition_trace.append(chosen_transition)
-                        update_transition_display(
-                            transition_trace_label, reset_button, undo_button
-                        )
-                        print(f"Transition: {current_state}")
+            for child in children:
+                if child in allowed_transitions:
+                    child_transitions = allowed_transitions[child]
+                    if isinstance(child_transitions, dict):
+                        for option, transition_label in child_transitions.items():
+                            option_key = option
+                            print(f"Child: {child} - Transition_label: {option}")
+                            allowed_transitions_from_children[option_key] = child
                 else:
-                    print("Handling invalid transition")
-                    messagebox.showinfo(
-                        "Invalid Transition",
-                        f"Cannot transition from {current_state} to {state}",
+                    allowed_transitions_from_children[child_transitions] = child
+                print(
+                    f"allowed_transitions_from_children: {allowed_transitions_from_children}"
+                )
+
+            if allowed_transitions_from_children:
+                chosen_transition = ask_user_for_transition(
+                    allowed_transitions_from_children, parent
+                )
+                if chosen_transition is not None:
+                    state_stack.append(current_state.copy())
+                    next_state = allowed_transitions_from_children[chosen_transition]
+                    next_state = clicked_state_rep(next_state)
+
+                    print(f"next state: {next_state}")
+                    active, new_remembered = parse_state(next_state)
+                    if active != active_current:
+                        state_changed = True
+                        print("STATE CHANGED")
+                    current_state["active"] = active
+                    current_state["remembered"] = new_remembered
+                    transition_trace.append(chosen_transition)
+                    update_transition_display(
+                        transition_trace_label, reset_button, undo_button
                     )
-                    print("Invalid transition. Ignoring click.")
+        else:
+            print(
+                f"No valid transitions found from {current_state['active']} to {active_clicked}"
+            )
+            messagebox.showinfo(
+                "Invalid Transition",
+                f"Cannot transition from {active_current} to {active_clicked}",
+            )
+            print("Invalid transition. Ignoring click.")
     else:
         messagebox.showinfo("Clicked Outside", "Please choose a valid state")
         print("Outside")
 
     return state_changed
+
+
+def parse_state(state_str):
+    if "(" in state_str:
+        active, remembered = state_str.split("(")
+        remembered = remembered.strip(")")
+        return active, remembered
+    return state_str, None
+
+
+def clicked_state_rep(state):
+    active, remembered = parse_state(state)
+
+    if remembered is None or remembered == "":
+        state = active
+    else:
+        state = f"{active}({remembered})"
+
+    return state
+
+
+def current_state_rep(state):
+    if state["remembered"] is None or state["remembered"] == "":
+        state = state["active"]
+    else:
+        state = f"{state['active']}({state['remembered']})"
+
+    return state
 
 
 class TransitionDialog(tk.Toplevel):
@@ -393,18 +554,20 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             print("No elements to highlight. Only Rendering the SVG")
             return
 
-        if active_state is None:
-            active_state = current_state
+        current = current_state
+        current = current_state_rep(current)
+        active_state, remembered_state = parse_state(current)
 
         marked_states = find_active_states(active_state)
         for state, hierarchy in STATE_HIERARCHY.items():
             if state == active_state or state in marked_states:
                 for element in ELEMENTS:
                     if element[0] == state:
+                        print(f"Element[0] (active 1): {element[0]}")
                         x1, x2, y1, y2 = [
                             int(coord * current_scale) for coord in element[1]
                         ]
-                        outline_color = "red" if state != active_state else "green"
+                        outline_color = "red" if state != active_state else "turquoise"
                         outline_width = 2 if state != active_state else 3
                         canvas.create_rectangle(
                             x1,
@@ -428,7 +591,9 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
                             x1, x2, y1, y2 = [
                                 int(coord * current_scale) for coord in element[1]
                             ]
-                            outline_color = "red" if state != active_state else "green"
+                            outline_color = (
+                                "red" if state != active_state else "turquoise"
+                            )
                             outline_width = 2 if state != active_state else 3
                             canvas.create_rectangle(
                                 x1,
@@ -444,21 +609,34 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             canvas.update_idletasks()
             canvas.config(scrollregion=canvas.bbox("all"))
 
+        if remembered_state:
+            for element in ELEMENTS:
+                if element[0] == remembered_state:
+                    x1, x2, y1, y2 = [
+                        int(coord * current_scale) for coord in element[1]
+                    ]
+                    canvas.create_rectangle(x1, y1, x2, y2, outline="#AFEEEE", width=2)
+                    break
+
+        canvas.config(width=target_width, height=target_height)
+        canvas.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+
 
 def enter_state(
     state_name, canvas, transition_trace_label, reset_button, undo_button, parent
 ):
     global hints_visible
-    if state_name in transitions.get(current_state, {}).keys():
-        hints_visible = False
-    state_transitioned = state_handling(
+    state_transitioned = state_parameter(
         state_name, transition_trace_label, reset_button, undo_button, parent
     )
-    marked_states = find_active_states(state_name)
-    print(f"Marked states: {marked_states}")
+
     if state_transitioned:
         render_uml_diagram(
-            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+            canvas,
+            svg_file_path,
+            active_state=current_state["active"],
+            debug_mode=debug_mode,
         )
     else:
         print("No need to call render_uml_diagram")
@@ -468,8 +646,15 @@ def highlight_next_states(canvas, next_states):
     global current_scale, hints_visible
     print("Highlighting next states:", next_states)
     ELEMENTS = get_elements()
+    active_states = {parse_state(state)[0] for state in next_states}
+
     for state, coordinates in ELEMENTS:
-        if state in next_states:
+        if state in active_states:
+            if state == current_state["remembered"]:
+                color = "yellow"
+            else:
+                color = "orange"
+
             x1, x2, y1, y2 = [int(coord * current_scale) for coord in coordinates]
             state_width = x2 - x1
             state_height = y2 - y1
@@ -481,7 +666,7 @@ def highlight_next_states(canvas, next_states):
                 state_center_y - circle_radius,
                 state_center_x + circle_radius,
                 state_center_y + circle_radius,
-                outline="orange",
+                outline=color,
                 width=2,
                 tags="hints",
             )
@@ -532,7 +717,7 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
 
     loaded_svg_content = get_modified_svg_content()
     if loaded_svg_content:
-        current_state = None
+        current_state = {"active": None, "remembered": None}
         transition_trace.clear()
         state_stack.clear()
         update_transition_display(transition_trace_label, reset_button, undo_button)
@@ -569,7 +754,12 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         max_y = max(state[1][3] for state in ELEMENTS)
         canvas.config(width=max_x + 20, height=max_y + 20)
 
-    render_uml_diagram(canvas, svg_file_path, active_state=None, debug_mode=debug_mode)
+    render_uml_diagram(
+        canvas,
+        svg_file_path,
+        active_state=current_state["active"],
+        debug_mode=debug_mode,
+    )
     canvas.update_idletasks()
     canvas.config(scrollregion=canvas.bbox("all"))
     return True
@@ -616,11 +806,14 @@ def zoom(event, canvas):
         ):
             canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
 
-        next_states = transitions.get(current_state, {}).keys()
+        next_states = transitions.get(current_state["active"], {}).keys()
         highlight_next_states(canvas, next_states)
 
         render_uml_diagram(
-            canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+            canvas,
+            svg_file_path,
+            active_state=current_state["active"],
+            debug_mode=debug_mode,
         )
 
 
@@ -660,7 +853,10 @@ def maximize_visible_canvas(canvas):
         current_scale = proposed_scale
 
     render_uml_diagram(
-        canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+        canvas,
+        svg_file_path,
+        active_state=current_state["active"],
+        debug_mode=debug_mode,
     )
 
     canvas.yview_moveto(0)
@@ -678,7 +874,10 @@ def toggle_color_mode(canvas):
 
     if loaded_svg_content:
         render_uml_diagram(
-            canvas, svg_file_path, active_state=None, debug_mode=debug_mode
+            canvas,
+            svg_file_path,
+            active_state=current_state["active"],
+            debug_mode=debug_mode,
         )
 
 
@@ -687,8 +886,13 @@ def show_hints(canvas):
 
     print("Show hints called")
 
-    next_states = transitions.get(current_state, {}).keys()
-    print("Next states:", next_states)
+    current_state_hints = current_state
+    print(f"Show hints [current_state_hints]: {current_state_hints}")
+
+    current_state_hints = current_state_rep(current_state_hints)
+
+    next_states = transitions.get(current_state_hints, {}).keys()
+    print(f"Next states of {current_state_hints}:", next_states)
 
     if hints_visible:
         clear_hints(canvas)
@@ -706,7 +910,10 @@ def clear_hints(canvas):
 def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
     global transition_trace, current_state, state_stack
 
-    current_state = state_stack[0]
+    if state_stack:
+        current_state = state_stack[0].copy()
+    else:
+        current_state = {"active": None, "remembered": None}
 
     state_stack.clear()
 
@@ -714,7 +921,10 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
 
     update_transition_display(transition_trace_label, reset_button, undo_button)
     render_uml_diagram(
-        canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+        canvas,
+        svg_file_path,
+        active_state=current_state["active"],
+        debug_mode=debug_mode,
     )
     print("Transition trace reset.")
 
@@ -723,16 +933,22 @@ def undo_last_transition(transition_trace_label, reset_button, undo_button, canv
     global current_state, transition_trace, state_stack
 
     if transition_trace:
-        previous_state = state_stack.pop() if state_stack else None
+        if state_stack:
+            previous_state = state_stack.pop()
+            current_state = previous_state.copy()
+        else:
+            current_state = {"active": None, "remembered": None}
 
         if previous_state:
-            current_state = previous_state
             transition_trace.pop()
 
             update_transition_display(transition_trace_label, reset_button, undo_button)
 
             render_uml_diagram(
-                canvas, svg_file_path, active_state=current_state, debug_mode=debug_mode
+                canvas,
+                svg_file_path,
+                active_state=current_state["active"],
+                debug_mode=debug_mode,
             )
 
             undo_button["state"] = "normal"
