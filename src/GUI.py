@@ -495,7 +495,10 @@ def ask_user_for_transition(transitions_dict, parent):
 
 def update_transition_display(transition_trace_label, reset_button, undo_button):
     global transition_trace
-    formatted_trace = [str(transition) for transition in transition_trace]
+    formatted_trace = [
+        str(transition) if transition != "" else "(empty)"
+        for transition in transition_trace
+    ]
 
     if formatted_trace:
         formatted_text = "Transition Trace: " + ", ".join(formatted_trace) + ", "
@@ -705,10 +708,6 @@ def highlight_next_states(canvas, next_states):
     print("Highlighting next states:", next_states)
     ELEMENTS = get_elements()
     active_states = {parse_state(state)[0] for state in next_states}
-
-    if not next_states:
-        messagebox.showinfo("No More Steps", "No more further steps are possible.")
-        return
 
     canvas.delete("hints")
 
@@ -964,12 +963,17 @@ def show_hints(canvas):
     next_states = transitions.get(current_state_hints, {}).keys()
     print(f"Next states of {current_state_hints}:", next_states)
 
-    if hints_visible:
-        clear_hints(canvas)
-        hints_visible = False
-    else:
+    clear_hints(canvas)
+
+    if next_states and not hints_visible:
         highlight_next_states(canvas, next_states)
         hints_visible = True
+    elif not next_states:
+        messagebox.showinfo("No More Steps", "No more further steps are possible.")
+        hints_visible = False
+    elif hints_visible:
+        clear_hints(canvas)
+        hints_visible = False
 
 
 def clear_hints(canvas):
