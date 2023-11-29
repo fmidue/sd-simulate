@@ -15,6 +15,7 @@ from GUI import (
     undo_last_transition,
     update_transition_display,
     zoom,
+    show_state_diagram_graph,
 )
 
 logging.basicConfig(
@@ -125,6 +126,14 @@ def run_app():
         state="disabled",
         command=lambda: maximize_visible_canvas(canvas),
     )
+    button_show_graph: Button = tk.Button(
+        right_button_frame,
+        text="Show State Diagram Graph",
+        state="disabled",
+        command=show_state_diagram_graph,
+    )
+    button_show_graph.pack(side=tk.LEFT, padx=(0, 25))
+
     toggle_button: Button = tk.Button(
         right_button_frame,
         text="Toggle Color Mode",
@@ -143,6 +152,7 @@ def run_app():
             hint_button["state"] = "normal"
             reset_button["state"] = "disabled"
             undo_button["state"] = "disabled"
+            button_show_graph["state"] = "normal"
             if debug_mode:
                 toggle_button["state"] = "normal"
 

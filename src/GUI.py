@@ -5,6 +5,8 @@ import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
+import subprocess
+from graphviz import Digraph
 
 import cairosvg
 from svg_parser import (
@@ -34,7 +36,8 @@ hints_visible = False
 current_state = {"active": None, "remembered": None}
 
 
-global transition_trace_label
+global transition_trace_label, transitions_file_path
+transitions_file_path = None
 
 
 def read_transitions_from_file(file_path):
@@ -86,6 +89,48 @@ def read_transitions_from_file(file_path):
                 add_transition(source_str, dest_str, label)
 
     return current_state, transitions
+
+
+def create_state_diagram_graph_from_file(file_path):
+    graph = Digraph(comment="UML State Diagram")
+
+    with open(file_path, "r") as file:
+        for line in file:
+            if line.strip():
+                parts = line.strip().split(" -> ")
+                if len(parts) == 2:
+                    source, dest_label = parts
+                    dest, label = (
+                        dest_label.split(" : ")
+                        if " : " in dest_label
+                        else (dest_label, "")
+                    )
+                    graph.edge(source, dest, label=label)
+                elif len(parts) == 1 and "(" in parts[0]:
+                    node_name = parts[0].split("(")[0]
+                    graph.node(node_name)
+
+    return graph
+
+
+def show_state_diagram_graph():
+    global transitions_file_path
+
+    if not transitions_file_path:
+        print("No transitions file path. Choose a file first.")
+        return
+
+    graph = create_state_diagram_graph_from_file(transitions_file_path)
+    display_state_diagram_graph(graph)
+
+
+def display_state_diagram_graph(graph):
+    graph_file_path = "state_diagram_graph.dot"
+    graph.save(graph_file_path)
+
+    subprocess.run(["dot", "-Tpng", "-o", "state_diagram_graph.png", graph_file_path])
+    subprocess.run(["open", "-a", "Preview", "state_diagram_graph.png"])
+    subprocess.run(["start", "state_diagram_graph.png"], shell=True)
 
 
 def on_canvas_click(
@@ -694,7 +739,7 @@ def highlight_next_states(canvas, next_states):
 
 def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     global svg_file_path, xml_type, svg_rainbow_file_path, loaded_svg_content, current_state, transitions
-    global is_svg_updated, original_width, original_height
+    global is_svg_updated, original_width, original_height, transitions_file_path
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
 
@@ -731,6 +776,8 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     ):
         print("You don't have all file types needed.")
         return False
+
+    transitions_file_path = transitions_file_path
 
     loaded_svg_content = get_modified_svg_content()
     if loaded_svg_content:
