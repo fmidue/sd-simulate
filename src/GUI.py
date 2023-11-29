@@ -385,6 +385,11 @@ class TransitionDialog(tk.Toplevel):
         self.selected_option = None
 
         options = list(transitions_dict.items())
+
+        if "" in transitions_dict:
+            transitions_dict["(empty)"] = transitions_dict[""]
+            del transitions_dict[""]
+
         if len(options) == 1:
             self.selected_option = options[0][0]
             self.destroy()
@@ -393,6 +398,8 @@ class TransitionDialog(tk.Toplevel):
         first_key = next(iter(transitions_dict)) if transitions_dict else None
         if first_key:
             self.trans_value.set(first_key)
+        else:
+            self.trans_value.set("(empty)")
 
         radio_button_font = ("Verdana", 9)
 
@@ -431,7 +438,8 @@ class TransitionDialog(tk.Toplevel):
         self.geometry(f"{width}x{height}+{x}+{y}")
 
     def on_ok(self):
-        self.selected_option = self.trans_value.get()
+        selected_option = self.trans_value.get()
+        self.selected_option = selected_option if selected_option != "(empty)" else ""
         self.destroy()
 
 
@@ -443,7 +451,12 @@ def ask_user_for_transition(transitions_dict, parent):
 def update_transition_display(transition_trace_label, reset_button, undo_button):
     global transition_trace
     formatted_trace = [str(transition) for transition in transition_trace]
-    formatted_text = "Transition Trace: " + " , ".join(formatted_trace)
+
+    if formatted_trace:
+        formatted_text = "Transition Trace: " + ", ".join(formatted_trace) + ", "
+    else:
+        formatted_text = "Transition Trace: "
+
     transition_trace_label.config(text=formatted_text)
 
     reset_button["state"] = "normal" if transition_trace else "disabled"
@@ -648,25 +661,29 @@ def highlight_next_states(canvas, next_states):
     ELEMENTS = get_elements()
     active_states = {parse_state(state)[0] for state in next_states}
 
+    if not next_states:
+        messagebox.showinfo("No More Steps", "No more further steps are possible.")
+        return
+
+    canvas.delete("hints")
+
     for state, coordinates in ELEMENTS:
         if state in active_states:
-            if state == current_state["remembered"]:
-                color = "yellow"
-            else:
-                color = "orange"
-
             x1, x2, y1, y2 = [int(coord * current_scale) for coord in coordinates]
             state_width = x2 - x1
             state_height = y2 - y1
             state_center_x = (x1 + x2) / 2
             state_center_y = (y1 + y2) / 2
-            circle_radius = max(state_width, state_height) / 2
+
+            oval_half_width = state_width / 2
+            oval_half_height = state_height / 2
+
             canvas.create_oval(
-                state_center_x - circle_radius,
-                state_center_y - circle_radius,
-                state_center_x + circle_radius,
-                state_center_y + circle_radius,
-                outline=color,
+                state_center_x - oval_half_width,
+                state_center_y - oval_half_height,
+                state_center_x + oval_half_width,
+                state_center_y + oval_half_height,
+                outline="orange",
                 width=2,
                 tags="hints",
             )
@@ -721,6 +738,9 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         transition_trace.clear()
         state_stack.clear()
         update_transition_display(transition_trace_label, reset_button, undo_button)
+        clear_hints(canvas)
+        global hints_visible
+        hints_visible = False
         is_svg_updated = True
         original_width, original_height = get_svg_dimensions(loaded_svg_content)
     print("Loaded new SVG content.")
@@ -806,15 +826,15 @@ def zoom(event, canvas):
         ):
             canvas.config(scrollregion=(scroll_x1, scroll_y1, scroll_x2, scroll_y2))
 
-        next_states = transitions.get(current_state["active"], {}).keys()
-        highlight_next_states(canvas, next_states)
-
         render_uml_diagram(
             canvas,
             svg_file_path,
             active_state=current_state["active"],
             debug_mode=debug_mode,
         )
+        if hints_visible:
+            next_states = transitions.get(current_state["active"], {}).keys()
+            highlight_next_states(canvas, next_states)
 
 
 def maximize_visible_canvas(canvas):
@@ -861,6 +881,9 @@ def maximize_visible_canvas(canvas):
 
     canvas.yview_moveto(0)
     canvas.xview_moveto(0)
+    if hints_visible:
+        next_states = transitions.get(current_state["active"], {}).keys()
+        highlight_next_states(canvas, next_states)
 
 
 def toggle_color_mode(canvas):
