@@ -11,11 +11,11 @@ from GUI import (
     on_canvas_scroll,
     reset_trace,
     show_hints,
+    show_state_diagram_graph,
     toggle_color_mode,
     undo_last_transition,
     update_transition_display,
     zoom,
-    show_state_diagram_graph,
 )
 
 logging.basicConfig(

@@ -1,11 +1,11 @@
 import logging
 import os
 import re
+import subprocess
 import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
-import subprocess
 from graphviz import Digraph
 
 import cairosvg
