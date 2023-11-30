@@ -6,9 +6,10 @@ import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
-from graphviz import Digraph
 
 import cairosvg
+from graphviz import Digraph
+
 from svg_parser import (
     check_state_type1,
     check_state_type2,
