@@ -743,7 +743,7 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     STATE_HIERARCHY = get_hierarchy()
 
     file_path = filedialog.askopenfilename(
-        filetypes=[("SVG files", "*.svg"), ("Text files", "*.txt")]
+        filetypes=[("Text files", "*_flattened.txt"), ("SVG files", "*.svg")]
     )
     if not file_path:
         return False
