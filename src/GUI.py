@@ -9,7 +9,6 @@ from tkinter import PhotoImage, filedialog, messagebox
 
 import cairosvg
 from graphviz import Digraph
-
 from svg_parser import (
     check_state_type1,
     check_state_type2,
