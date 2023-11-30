@@ -1,3 +1,4 @@
+AFEEEE
 Autotool
 DSL
 GHC
@@ -8,6 +9,7 @@ Leftrightarrow
 Modellierung
 Programmierparadigmen
 Rightarrow
+Tpng
 UML
 Verdana
 bigskip
@@ -25,6 +27,7 @@ foldl
 foldr
 fst
 github
+graphviz
 hspace
 hspec
 https
