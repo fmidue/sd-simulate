@@ -1,12 +1,12 @@
 import logging
 import os
+import platform
 import re
 import subprocess
 import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
-import platform
 
 import cairosvg
 from graphviz import Digraph
@@ -125,7 +125,7 @@ def display_state_diagram_graph(graph):
 
     image_path = os.path.abspath("state_diagram_graph.png")
 
-    if platform.system() == "Darwin": 
+    if platform.system() == "Darwin":
         subprocess.run(["open", "-a", "Preview", image_path])
     elif platform.system() == "Windows":
         os.startfile(image_path, "open")
@@ -214,7 +214,7 @@ def state_parameter(state, transition_trace_label, reset_button, undo_button, pa
         current = state_representation(current_state)
 
         print(
-            f"ON CANVAS 2 TEST (3): combined_transition_state: {combined_transition_state} From current state : {current}"
+            f"ON CANVAS 2 TEST 3: combined_transition_state: {combined_transition_state} From current state : {current}"
         )
 
         for transition in transitions.get(current, {}):
