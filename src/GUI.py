@@ -6,6 +6,7 @@ import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
 from tkinter import PhotoImage, filedialog, messagebox
+import platform
 
 import cairosvg
 from graphviz import Digraph
@@ -46,17 +47,8 @@ def read_transitions_from_file(file_path):
     transition_counter = {}
 
     def add_transition(source, dest, label):
-        active_source, remembered_source = parse_state(source)
-        active_dest, remembered_dest = parse_state(dest)
-
-        source_key = (
-            f"{active_source}({remembered_source})"
-            if remembered_source
-            else active_source
-        )
-        dest_key = (
-            f"{active_dest}({remembered_dest})" if remembered_dest else active_dest
-        )
+        source_key = file_state_representation(source)
+        dest_key = file_state_representation(dest)
 
         if source_key not in transitions:
             transitions[source_key] = {}
@@ -78,7 +70,7 @@ def read_transitions_from_file(file_path):
                 active, remembered = parse_state(state_str)
                 current_state["active"] = active
                 current_state["remembered"] = remembered
-                initial_state_key = f"{active}({remembered})" if remembered else active
+                initial_state_key = file_state_representation(state_str)
                 transitions[initial_state_key] = {}
             elif "->" in line:
                 parts = line.split("->")
@@ -91,24 +83,24 @@ def read_transitions_from_file(file_path):
     return current_state, transitions
 
 
-def create_state_diagram_graph_from_file(file_path):
+def create_state_diagram_graph(current_state, transitions):
     graph = Digraph(comment="UML State Diagram")
 
-    with open(file_path, "r") as file:
-        for line in file:
-            if line.strip():
-                parts = line.strip().split(" -> ")
-                if len(parts) == 2:
-                    source, dest_label = parts
-                    dest, label = (
-                        dest_label.split(" : ")
-                        if " : " in dest_label
-                        else (dest_label, "")
-                    )
-                    graph.edge(source, dest, label=label)
-                elif len(parts) == 1 and "(" in parts[0]:
-                    node_name = parts[0].split("(")[0]
-                    graph.node(node_name)
+    for source, dest_dict in transitions.items():
+        for dest, label_dict in dest_dict.items():
+            for label, option_label in label_dict.items():
+                graph.edge(source, dest, label=label)
+
+    states = [state for state in current_state.values() if state is not None]
+
+    for state in states:
+        active, remembered = parse_state(state)
+        if remembered is None:
+            state_key = current_state["active"]
+        else:
+            state_key = f"{active}({remembered})"
+
+        graph.node(state_key)
 
     return graph
 
@@ -120,7 +112,8 @@ def show_state_diagram_graph():
         print("No transitions file path. Choose a file first.")
         return
 
-    graph = create_state_diagram_graph_from_file(transitions_file_path)
+    current_state, transitions = read_transitions_from_file(transitions_file_path)
+    graph = create_state_diagram_graph(current_state, transitions)
     display_state_diagram_graph(graph)
 
 
@@ -129,8 +122,17 @@ def display_state_diagram_graph(graph):
     graph.save(graph_file_path)
 
     subprocess.run(["dot", "-Tpng", "-o", "state_diagram_graph.png", graph_file_path])
-    subprocess.run(["open", "-a", "Preview", "state_diagram_graph.png"])
-    subprocess.run(["start", "state_diagram_graph.png"], shell=True)
+
+    image_path = os.path.abspath("state_diagram_graph.png")
+
+    if platform.system() == "Darwin": 
+        subprocess.run(["open", "-a", "Preview", image_path])
+    elif platform.system() == "Windows":
+        os.startfile(image_path, "open")
+    elif platform.system() == "Linux":
+        subprocess.run(["xdg-open", image_path])
+    else:
+        print("Unsupported operating system.")
 
 
 def on_canvas_click(
@@ -168,7 +170,6 @@ def on_canvas_click(
             render_uml_diagram(
                 canvas,
                 svg_file_path,
-                active_state=current_state["active"],
                 debug_mode=debug_mode,
             )
         else:
@@ -179,48 +180,17 @@ def on_canvas_click(
 
 def state_parameter(state, transition_trace_label, reset_button, undo_button, parent):
     global hints_visible
-    STATE_HIERARCHY = get_hierarchy()
-    clicked_active, clicked_remembered = parse_state(state)
-
-    if clicked_remembered is None:
-        state = clicked_active
-    else:
-        state = f"{clicked_active}({clicked_remembered})"
-
     print(f"ON CANVAS CLICKED STATE: {state}")
 
-    if clicked_active in STATE_HIERARCHY:
-        children = STATE_HIERARCHY.get(clicked_active, [])
-    else:
-        children = []
-
-    if (
-        state in transitions.get(current_state["active"], {})
-        or state == current_state["remembered"]
-    ):
-        print("ON CANVAS 1")
-        print(f"clicked_state: {state}")
-        hints_visible = False
-        state_transitioned = state_handling(
-            state, transition_trace_label, reset_button, undo_button, parent
-        )
-
-    elif children != []:
-        print("ON CANVAS 2")
-        print(f"ON CANVAS 2 TEST: {children}")
-        hints_visible = False
-        state_transitioned = state_handling(
-            state, transition_trace_label, reset_button, undo_button, parent
-        )
-    elif current_state["remembered"] is None:
-        print("ON CANVAS 3")
+    if current_state["remembered"] is None:
         combined_transition_state = f"{state}({current_state['active']})"
 
         print(f"combined_transition_state: {combined_transition_state}")
 
         for transition in transitions.get(current_state["active"], {}):
-            print(f"ON CANVAS 2: {transition}")
+            print(f"ON CANVAS 1: {transition}")
         if combined_transition_state in transitions.get(current_state["active"], {}):
+            print("ON CANVAS 1 - CASE 1")
             hints_visible = False
             state_transitioned = state_handling(
                 combined_transition_state,
@@ -229,35 +199,47 @@ def state_parameter(state, transition_trace_label, reset_button, undo_button, pa
                 undo_button,
                 parent,
             )
-    elif current_state["remembered"] is not None:
-        print("ON CANVAS 4")
-        combined_transition_state = f"{state}({current_state['remembered']})"
-        combined_current_state = (
-            f"{current_state['active']}({current_state['remembered']})"
-        )
-        print(
-            f"combined_transition_state: {combined_transition_state} From current state : {combined_current_state}"
-        )
-        for transition in transitions.get(combined_current_state, {}):
-            print(f"ON CANVAS 4: {transition}")
-
-        hints_visible = False
-        state_transitioned = state_handling(
-            combined_transition_state,
-            transition_trace_label,
-            reset_button,
-            undo_button,
-            parent,
-        )
+        else:
+            print("ON CANVAS 1 - CASE 2")
+            hints_visible = False
+            state_transitioned = state_handling(
+                state,
+                transition_trace_label,
+                reset_button,
+                undo_button,
+                parent,
+            )
     else:
-        state_transitioned = state_handling(
-            clicked_active, transition_trace_label, reset_button, undo_button, parent
+        combined_transition_state = f"{state}({current_state['remembered']})"
+        current = state_representation(current_state)
+
+        print(
+            f"ON CANVAS 2 TEST (3): combined_transition_state: {combined_transition_state} From current state : {current}"
         )
-        messagebox.showinfo(
-            "Invalid Click",
-            f"Click on {state} does not lead to a valid transition from {current_state['active']}.",
-        )
-        return
+
+        for transition in transitions.get(current, {}):
+            print(f"ON CANVAS 2: {transition}")
+
+        if combined_transition_state in transitions.get(current, {}):
+            print("ON CANVAS 2 - CASE 1")
+            hints_visible = False
+            state_transitioned = state_handling(
+                combined_transition_state,
+                transition_trace_label,
+                reset_button,
+                undo_button,
+                parent,
+            )
+        else:
+            print("ON CANVAS 2 - CASE 2")
+            hints_visible = False
+            state_transitioned = state_handling(
+                state,
+                transition_trace_label,
+                reset_button,
+                undo_button,
+                parent,
+            )
 
     return state_transitioned
 
@@ -284,15 +266,16 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
     current = current_state
 
-    print(f"BEFORE-> Current State : {current}")
-    print(f"BEFORE-> Clicked State: {state}")
-    current = current_state_rep(current_state)
-    state = clicked_state_rep(state)
-    print(f"AFTER-> Current State : {current}")
-    print(f"AFTER-> Clicked State : {state}")
+    current = state_representation(current_state)
+    print(f"Current State : {current}")
+    print(f"Clicked State : {state}")
+    print("============================")
 
     active_clicked, remembered_clicked = parse_state(state)
     active_current, remembered_current = parse_state(current)
+
+    children = collect_all_children(state, STATE_HIERARCHY)
+    print(f"Children : {children}")
 
     if state != "Outside":
         allowed_transitions = transitions.get(current, {})
@@ -301,9 +284,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         )
 
         if state in allowed_transitions:
-            chosen_transition = None
             if isinstance(allowed_transitions[state], dict):
-                print(f"Handling dictionary transition {state}")
                 chosen_transition = ask_user_for_transition(
                     allowed_transitions[state], parent
                 )
@@ -311,7 +292,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 chosen_transition = allowed_transitions[state]
 
             if chosen_transition is not None:
-                print("CASE 1")
+                print(f"CASE 1 - Handling dictionary transition {state}")
                 state_stack.append(current_state.copy())
                 if active_clicked != active_current:
                     state_changed = True
@@ -324,8 +305,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 )
                 print(f"Transition: {current_state}")
         elif state in allowed_transitions:
-            print("CASE 2")
-            print(f"Handling direct transition {active_clicked}")
+            print(f"CASE 2 - Handling direct transition {active_clicked}")
             state_stack.append(current_state.copy())
             if active_clicked != active_current:
                 state_changed = True
@@ -335,14 +315,10 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             transition_trace.append(allowed_transitions[state])
             update_transition_display(transition_trace_label, reset_button, undo_button)
             print(f"Transition: {current_state}")
-        elif state in STATE_HIERARCHY:
-            print("CASE 3")
+        elif state in STATE_HIERARCHY and children != []:
             print(
-                f"Handling transition from complex or hierarchical state: {active_current}"
+                f"CASE 3 - Handling transition from complex or hierarchical state: {active_current}"
             )
-            children = collect_all_children(state, STATE_HIERARCHY)
-            print(f"All Children of {state}: {children}")
-
             allowed_transitions_from_children = {}
 
             for child in children:
@@ -366,9 +342,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 if chosen_transition is not None:
                     state_stack.append(current_state.copy())
                     next_state = allowed_transitions_from_children[chosen_transition]
-                    next_state = clicked_state_rep(next_state)
-
-                    print(f"next state: {next_state}")
+                    print(f"Chooen next state: {next_state}")
                     active, new_remembered = parse_state(next_state)
                     if active != active_current:
                         state_changed = True
@@ -380,12 +354,10 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                         transition_trace_label, reset_button, undo_button
                     )
         else:
-            print(
-                f"No valid transitions found from {current_state['active']} to {active_clicked}"
-            )
+            print(f"No valid transitions found from {current} to {active_clicked}")
             messagebox.showinfo(
                 "Invalid Transition",
-                f"Cannot transition from {active_current} to {active_clicked}",
+                f"Cannot transition from {current} to {state}",
             )
             print("Invalid transition. Ignoring click.")
     else:
@@ -403,22 +375,22 @@ def parse_state(state_str):
     return state_str, None
 
 
-def clicked_state_rep(state):
+def state_representation(state):
+    if state["remembered"] is None or state["remembered"] == "":
+        state = state["active"]
+    else:
+        state = f"{state['active']}({state['remembered']})"
+
+    return state
+
+
+def file_state_representation(state):
     active, remembered = parse_state(state)
 
     if remembered is None or remembered == "":
         state = active
     else:
         state = f"{active}({remembered})"
-
-    return state
-
-
-def current_state_rep(state):
-    if state["remembered"] is None or state["remembered"] == "":
-        state = state["active"]
-    else:
-        state = f"{state['active']}({state['remembered']})"
 
     return state
 
@@ -432,7 +404,7 @@ class TransitionDialog(tk.Toplevel):
         options = list(transitions_dict.items())
 
         if "" in transitions_dict:
-            transitions_dict["(empty)"] = transitions_dict[""]
+            transitions_dict[" "] = transitions_dict[""]
             del transitions_dict[""]
 
         if len(options) == 1:
@@ -443,8 +415,6 @@ class TransitionDialog(tk.Toplevel):
         first_key = next(iter(transitions_dict)) if transitions_dict else None
         if first_key:
             self.trans_value.set(first_key)
-        else:
-            self.trans_value.set("(empty)")
 
         radio_button_font = ("Verdana", 9)
 
@@ -483,8 +453,7 @@ class TransitionDialog(tk.Toplevel):
         self.geometry(f"{width}x{height}+{x}+{y}")
 
     def on_ok(self):
-        selected_option = self.trans_value.get()
-        self.selected_option = selected_option if selected_option != "(empty)" else ""
+        self.selected_option = self.trans_value.get()
         self.destroy()
 
 
@@ -495,10 +464,7 @@ def ask_user_for_transition(transitions_dict, parent):
 
 def update_transition_display(transition_trace_label, reset_button, undo_button):
     global transition_trace
-    formatted_trace = [
-        str(transition) if transition != "" else "(empty)"
-        for transition in transition_trace
-    ]
+    formatted_trace = [str(transition) for transition in transition_trace]
 
     if formatted_trace:
         formatted_text = "Transition Trace: " + ", ".join(formatted_trace) + ", "
@@ -558,7 +524,7 @@ def get_svg_dimensions(svg_content, max_dimension=10000):
     return width, height
 
 
-def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
+def render_uml_diagram(canvas, svg_file_path, debug_mode):
     global loaded_svg_content, last_svg_content_hash, last_scale, current_scale, current_image, is_svg_updated
     global original_width, original_height
     print("Rendering UML diagram using existing content.")
@@ -615,8 +581,7 @@ def render_uml_diagram(canvas, svg_file_path, active_state, debug_mode):
             print("No elements to highlight. Only Rendering the SVG")
             return
 
-        current = current_state
-        current = current_state_rep(current)
+        current = state_representation(current_state)
         active_state, remembered_state = parse_state(current)
 
         marked_states = find_active_states(active_state)
@@ -696,7 +661,6 @@ def enter_state(
         render_uml_diagram(
             canvas,
             svg_file_path,
-            active_state=current_state["active"],
             debug_mode=debug_mode,
         )
     else:
@@ -743,7 +707,7 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     STATE_HIERARCHY = get_hierarchy()
 
     file_path = filedialog.askopenfilename(
-        filetypes=[("Text files", "*_flattened.txt"), ("SVG files", "*.svg")]
+        filetypes=[("SVG files", "*.svg"), ("Text files", "*.txt")]
     )
     if not file_path:
         return False
@@ -823,7 +787,6 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
     render_uml_diagram(
         canvas,
         svg_file_path,
-        active_state=current_state["active"],
         debug_mode=debug_mode,
     )
     canvas.update_idletasks()
@@ -875,11 +838,11 @@ def zoom(event, canvas):
         render_uml_diagram(
             canvas,
             svg_file_path,
-            active_state=current_state["active"],
             debug_mode=debug_mode,
         )
         if hints_visible:
-            next_states = transitions.get(current_state["active"], {}).keys()
+            current = state_representation(current_state)
+            next_states = transitions.get(current, {}).keys()
             highlight_next_states(canvas, next_states)
 
 
@@ -921,7 +884,6 @@ def maximize_visible_canvas(canvas):
     render_uml_diagram(
         canvas,
         svg_file_path,
-        active_state=current_state["active"],
         debug_mode=debug_mode,
     )
 
@@ -942,10 +904,10 @@ def toggle_color_mode(canvas):
     print(f"Loaded SVG Content Updated: {loaded_svg_content is not None}")
 
     if loaded_svg_content:
+        current = state_representation(current_state)
         render_uml_diagram(
             canvas,
             svg_file_path,
-            active_state=current_state["active"],
             debug_mode=debug_mode,
         )
 
@@ -955,11 +917,8 @@ def show_hints(canvas):
 
     print("Show hints called")
 
-    current_state_hints = current_state
+    current_state_hints = state_representation(current_state)
     print(f"Show hints [current_state_hints]: {current_state_hints}")
-
-    current_state_hints = current_state_rep(current_state_hints)
-
     next_states = transitions.get(current_state_hints, {}).keys()
     print(f"Next states of {current_state_hints}:", next_states)
 
@@ -997,7 +956,6 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
     render_uml_diagram(
         canvas,
         svg_file_path,
-        active_state=current_state["active"],
         debug_mode=debug_mode,
     )
     print("Transition trace reset.")
@@ -1021,7 +979,6 @@ def undo_last_transition(transition_trace_label, reset_button, undo_button, canv
             render_uml_diagram(
                 canvas,
                 svg_file_path,
-                active_state=current_state["active"],
                 debug_mode=debug_mode,
             )
 
