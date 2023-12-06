@@ -51,9 +51,11 @@ readerlatex
 scanl
 scrollregion
 snd
+startfile
 subsubsection
 uncurry
 usepackage
 varepsilon
+xdg
 xscrollcommand
 yscrollcommand
