@@ -21,6 +21,7 @@ def parse_svg(file_path):
     result_list = []
     text_elements = root.findall(".//{http://www.w3.org/2000/svg}text")
     rect_elements = root.findall(".//{http://www.w3.org/2000/svg}rect")
+    ellipse_elements = root.findall(".//{http://www.w3.org/2000/svg}ellipse")
 
     for text_element in text_elements:
         text_fill_color = text_element.get("fill")
@@ -42,6 +43,22 @@ def parse_svg(file_path):
                 y1 = rect_y
                 y2 = rect_y + rect_height
                 result_list.append((state_name, (x1, x2, y1, y2)))
+
+    for i in range(len(ellipse_elements) - 1):
+        outer_ellipse = ellipse_elements[i]
+        inner_ellipse = ellipse_elements[i + 1]
+
+        if outer_ellipse.get("cx") == inner_ellipse.get("cx") and outer_ellipse.get(
+            "cy"
+        ) == inner_ellipse.get("cy"):
+            if (
+                outer_ellipse.get("fill") == "none"
+                and inner_ellipse.get("fill") != "none"
+            ):
+                cx, cy = float(outer_ellipse.get("cx")), float(outer_ellipse.get("cy"))
+                rx, ry = float(outer_ellipse.get("rx")), float(outer_ellipse.get("ry"))
+                end_state_bounds = (cx - rx, cx + rx, cy - ry, cy + ry)
+                result_list.append(("[**]", end_state_bounds))
 
     result_list.sort(key=lambda x: (len(STATE_HIERARCHY.get(x[0], [])), x[1][0]))
     STATE_HIERARCHY.update(build_state_hierarchy(result_list))
