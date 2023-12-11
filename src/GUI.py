@@ -6,6 +6,7 @@ import subprocess
 import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
+from typing import Dict, List
 from tkinter import PhotoImage, filedialog, messagebox
 
 import cairosvg
@@ -34,7 +35,7 @@ transition_trace = []
 state_stack = []
 is_svg_updated = False
 hints_visible = False
-current_state = {"active": [], "remembered": []}
+current_state: Dict[str, List[str]] = {"active": [], "remembered": []}
 transitions = {}
 
 
