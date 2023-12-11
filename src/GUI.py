@@ -6,8 +6,8 @@ import subprocess
 import tkinter as tk
 import tkinter.simpledialog
 import xml.etree.ElementTree as ET
-from typing import Dict, List
 from tkinter import PhotoImage, filedialog, messagebox
+from typing import Dict, List
 
 import cairosvg
 from graphviz import Digraph
@@ -338,9 +338,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 print(f"Handling transition to combined state {transition_state}")
                 state_stack.append(current_state.copy())
                 active_next, remembered_next = parse_state(transition_state)
-                if (
-                    "," in active_next[0]
-                ):
+                if "," in active_next[0]:
                     active_next = active_next[0].split(",")
                 current_state["active"] = active_next
                 current_state["remembered"] = remembered_next
