@@ -35,6 +35,7 @@ state_stack = []
 is_svg_updated = False
 hints_visible = False
 current_state = {"active": [], "remembered": []}
+transitions = {}
 
 
 global transition_trace_label, transitions_file_path
@@ -42,8 +43,8 @@ transitions_file_path = None
 
 
 def read_transitions_from_file(file_path):
+    global transitions, current_state
     transitions = {}
-    current_state = {"active": [], "remembered": []}
     transition_counter = {}
 
     def add_transition(source, dest, label):
@@ -82,37 +83,46 @@ def read_transitions_from_file(file_path):
     return current_state, transitions
 
 
-def create_state_diagram_graph(current_state, transitions):
+def clean_state_representation(state):
+    state = state.replace("[", "").replace("]", "").replace("''", "")
+    state = state.strip()
+    return state
+
+
+def create_state_diagram_graph():
+    global transitions, current_state
     graph = Digraph(comment="UML State Diagram")
 
+    added_states = set()
+
     for source, dest_dict in transitions.items():
+        cleaned_source = clean_state_representation(source)
+
+        if cleaned_source not in added_states:
+            graph.node(cleaned_source)
+            added_states.add(cleaned_source)
+
         for dest, label_dict in dest_dict.items():
+            cleaned_dest = clean_state_representation(dest)
+
+            if cleaned_dest not in added_states:
+                graph.node(cleaned_dest)
+                added_states.add(cleaned_dest)
+
             for label, option_label in label_dict.items():
-                graph.edge(source, dest, label=label)
-
-    states = [state for state in current_state.values() if state is not None]
-
-    for state in states:
-        active, remembered = parse_state(state)
-        if remembered is None:
-            state_key = current_state["active"]
-        else:
-            state_key = f"{active}({remembered})"
-
-        graph.node(state_key)
+                graph.edge(cleaned_source, cleaned_dest, label=label)
 
     return graph
 
 
 def show_state_diagram_graph():
-    global transitions_file_path
+    global transitions
 
-    if not transitions_file_path:
-        print("No transitions file path. Choose a file first.")
+    if not transitions:
+        print("No transitions data available. Load transitions first.")
         return
 
-    current_state, transitions = read_transitions_from_file(transitions_file_path)
-    graph = create_state_diagram_graph(current_state, transitions)
+    graph = create_state_diagram_graph()
     display_state_diagram_graph(graph)
 
 
@@ -327,7 +337,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 print(f"Handling transition to combined state {transition_state}")
                 state_stack.append(current_state.copy())
                 active_next, remembered_next = parse_state(transition_state)
-                if "," in active_next[0]:
+                if (
+                    "," in active_next[0]
+                ):
                     active_next = active_next[0].split(",")
                 current_state["active"] = active_next
                 current_state["remembered"] = remembered_next
