@@ -34,7 +34,7 @@ transition_trace = []
 state_stack = []
 is_svg_updated = False
 hints_visible = False
-current_state = {"active": None, "remembered": None}
+current_state = {"active": [], "remembered": []}
 
 
 global transition_trace_label, transitions_file_path
@@ -43,7 +43,7 @@ transitions_file_path = None
 
 def read_transitions_from_file(file_path):
     transitions = {}
-    current_state = {"active": None, "remembered": None}
+    current_state = {"active": [], "remembered": []}
     transition_counter = {}
 
     def add_transition(source, dest, label):
@@ -77,7 +77,6 @@ def read_transitions_from_file(file_path):
                 source_str = parts[0].strip()
                 dest_and_label = parts[1].strip()
                 dest_str, label = map(str.strip, dest_and_label.split(":"))
-
                 add_transition(source_str, dest_str, label)
 
     return current_state, transitions
@@ -182,14 +181,28 @@ def state_parameter(state, transition_trace_label, reset_button, undo_button, pa
     global hints_visible
     print(f"ON CANVAS CLICKED STATE: {state}")
 
-    if current_state["remembered"] is None:
+    current_active_formatted = ",".join(current_state["active"])
+    current_remembered_formatted = (
+        ",".join(current_state["remembered"]) if current_state["remembered"] else None
+    )
+
+    if current_remembered_formatted:
+        combined_transition_state = (
+            f"{state}({current_active_formatted},{current_remembered_formatted})"
+        )
+    else:
+        combined_transition_state = state
+
+    print(f"combined_transition_state: {combined_transition_state}")
+
+    available_transitions = transitions.get(9, {})
+
+    if current_state["remembered"] == []:
         combined_transition_state = f"{state}({current_state['active']})"
 
-        print(f"combined_transition_state: {combined_transition_state}")
-
-        for transition in transitions.get(current_state["active"], {}):
+        for transition in available_transitions:
             print(f"ON CANVAS 1: {transition}")
-        if combined_transition_state in transitions.get(current_state["active"], {}):
+        if combined_transition_state in available_transitions:
             print("ON CANVAS 1 - CASE 1")
             hints_visible = False
             state_transitioned = state_handling(
@@ -264,6 +277,15 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
         return all_children
 
+    def is_part_of_combined_state(clicked_state, allowed_transitions):
+        for transition_state in allowed_transitions:
+            active_transition_states, _ = parse_state(transition_state)
+            for active_state in active_transition_states:
+                individual_states = active_state.split(",")
+                if clicked_state in individual_states:
+                    return transition_state
+        return None
+
     current = current_state
 
     current = state_representation(current_state)
@@ -282,6 +304,40 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         print(
             f"Clicked State: {state}, Allowed Transitions from {current}: {allowed_transitions}"
         )
+
+        transition_state = is_part_of_combined_state(
+            state, transitions.get(current, {})
+        )
+        print(f"Transition state after checking combined states: {transition_state}")
+
+        print(f"state: {state} in allowed_transitions: {allowed_transitions}")
+        if transition_state in transitions.get(current, {}):
+            print(
+                f"Transition state after checking combined states: {transition_state}"
+            )
+            chosen_transition = None
+            if isinstance(transitions[current][transition_state], dict):
+                chosen_transition = ask_user_for_transition(
+                    transitions[current][transition_state], parent
+                )
+            else:
+                chosen_transition = transitions[current][transition_state]
+
+            if chosen_transition is not None:
+                print(f"Handling transition to combined state {transition_state}")
+                state_stack.append(current_state.copy())
+                active_next, remembered_next = parse_state(transition_state)
+                if "," in active_next[0]:
+                    active_next = active_next[0].split(",")
+                current_state["active"] = active_next
+                current_state["remembered"] = remembered_next
+                transition_trace.append(chosen_transition)
+                update_transition_display(
+                    transition_trace_label, reset_button, undo_button
+                )
+                state_changed = True
+                print(f"Transition: {current_state}")
+                return state_changed
 
         if state in allowed_transitions:
             if isinstance(allowed_transitions[state], dict):
@@ -368,31 +424,63 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
 
 def parse_state(state_str):
-    if "(" in state_str:
-        active, remembered = state_str.split("(")
-        remembered = remembered.strip(")")
-        return active, remembered
-    return state_str, None
+    if "(" in state_str and ")" in state_str:
+        parts = state_str.split("(")
+        parts[1] = parts[1].strip(")")
+        print(f"Parts of state_str: {parts}")
+
+        if parts[0] == "":
+            active = parts[1].strip("()").split(", ") if parts[1].strip("()") else []
+            remembered = (
+                parts[0].strip("()").split(", ")
+                if len(parts) > 1 and parts[0].strip("()")
+                else []
+            )
+        else:
+            active = parts[0].strip("()").split(", ") if parts[0].strip("()") else []
+            remembered = (
+                parts[1].strip("()").split(", ")
+                if len(parts) > 1 and parts[1].strip("()")
+                else []
+            )
+
+        print(f"Active: {active}, Remembered: {remembered}")
+    else:
+        active = state_str.split(", ") if "," in state_str else [state_str]
+        remembered = []
+
+        print(f"Active: {active}, Remembered: {remembered}")
+
+    return active, remembered
 
 
 def state_representation(state):
-    if state["remembered"] is None or state["remembered"] == "":
-        state = state["active"]
+    active = state["active"]
+    remembered = state["remembered"]
+    if not remembered:
+        return f"{','.join(active)}"
     else:
-        state = f"{state['active']}({state['remembered']})"
-
-    return state
+        return f"{','.join(active)}({', '.join(remembered)})"
 
 
 def file_state_representation(state):
     active, remembered = parse_state(state)
 
-    if remembered is None or remembered == "":
-        state = active
-    else:
-        state = f"{active}({remembered})"
+    if active:
+        for element in active:
+            print(f"active element: {element}")
 
-    return state
+    if remembered:
+        for element in remembered:
+            print(f"remembered element: {element}")
+
+    active_str = ",".join(active) if active else ""
+    remembered_str = ",".join(remembered) if remembered else ""
+
+    if remembered_str:
+        return f"{active_str}({remembered_str})"
+    else:
+        return active_str
 
 
 class TransitionDialog(tk.Toplevel):
@@ -543,6 +631,12 @@ def render_uml_diagram(canvas, svg_file_path, debug_mode):
     target_width = max(target_width, MIN_WIDTH)
     target_height = max(target_height, MIN_HEIGHT)
 
+    def split_states(state_list):
+        states = []
+        for state in state_list:
+            states.extend(state.split(","))
+        return states
+
     if modified_svg_content:
         if (
             current_scale * max(ELEMENTS, key=lambda item: item[1][1])[1][1] < MIN_WIDTH
@@ -562,14 +656,12 @@ def render_uml_diagram(canvas, svg_file_path, debug_mode):
             current_image = image
 
             print(f"Resizing to Width: {target_width}, Height: {target_height}")
-
             canvas.delete("all")
             canvas.create_image(0, 0, anchor="nw", image=image)
             canvas.image = image
 
             is_svg_updated = False
             last_scale = current_scale
-
         else:
             if current_image is not None:
                 canvas.delete("all")
@@ -581,38 +673,23 @@ def render_uml_diagram(canvas, svg_file_path, debug_mode):
             print("No elements to highlight. Only Rendering the SVG")
             return
 
+        print(f"before state_representation,current_state: {current_state} ")
         current = state_representation(current_state)
-        active_state, remembered_state = parse_state(current)
+        print(f"after state_representation,current_state: {current} ")
+        active_states, remembered_states = parse_state(current)
+        print(f"Active States: {active_states}, Remembered States: {remembered_states}")
 
-        marked_states = find_active_states(active_state)
-        for state, hierarchy in STATE_HIERARCHY.items():
-            if state == active_state or state in marked_states:
-                for element in ELEMENTS:
-                    if element[0] == state:
-                        print(f"Element[0] (active 1): {element[0]}")
-                        x1, x2, y1, y2 = [
-                            int(coord * current_scale) for coord in element[1]
-                        ]
-                        outline_color = "red" if state != active_state else "turquoise"
-                        outline_width = 2 if state != active_state else 3
-                        canvas.create_rectangle(
-                            x1,
-                            y1,
-                            x2,
-                            y2,
-                            outline=outline_color,
-                            width=outline_width,
-                        )
-                        break
-        canvas.config(width=target_width, height=target_height)
-        canvas.update_idletasks()
-        canvas.config(scrollregion=canvas.bbox("all"))
-
-        if active_state:
+        for active_state in split_states(active_states):
+            active_state = active_state.strip()
             marked_states = find_active_states(active_state)
+            print(f"Marked active state: {active_state}, Coordinates: {marked_states}")
+            print("STATE_HIERARCHY Condition reached")
             for state, hierarchy in STATE_HIERARCHY.items():
                 if state == active_state or state in marked_states:
+                    print("STATE_HIERARCHY Condition :  condition passed")
+                    print(f"Highlighting active state: {active_state}")
                     for element in ELEMENTS:
+                        print(f"Element[0] (active): {element[0]}, state: {state}")
                         if element[0] == state:
                             x1, x2, y1, y2 = [
                                 int(coord * current_scale) for coord in element[1]
@@ -629,20 +706,19 @@ def render_uml_diagram(canvas, svg_file_path, debug_mode):
                                 outline=outline_color,
                                 width=outline_width,
                             )
-                            break
+                            print(
+                                f"Highlighting active state: {state} at {x1, y1, x2, y2}"
+                            )
 
-            canvas.config(width=target_width, height=target_height)
-            canvas.update_idletasks()
-            canvas.config(scrollregion=canvas.bbox("all"))
-
-        if remembered_state:
+        for remembered_state in split_states(remembered_states):
+            remembered_state = remembered_state.strip()
+            print(f"Highlighting remembered state: {remembered_state}")
             for element in ELEMENTS:
                 if element[0] == remembered_state:
                     x1, x2, y1, y2 = [
                         int(coord * current_scale) for coord in element[1]
                     ]
                     canvas.create_rectangle(x1, y1, x2, y2, outline="#AFEEEE", width=2)
-                    break
 
         canvas.config(width=target_width, height=target_height)
         canvas.update_idletasks()
@@ -671,7 +747,21 @@ def highlight_next_states(canvas, next_states):
     global current_scale, hints_visible
     print("Highlighting next states:", next_states)
     ELEMENTS = get_elements()
-    active_states = {parse_state(state)[0] for state in next_states}
+
+    current = state_representation(current_state)
+    active_current, _ = parse_state(current)
+
+    split_current_states = set()
+    for state in active_current:
+        split_current_states.update(state.split(","))
+
+    active_states = set()
+    for state in next_states:
+        active, _ = parse_state(state)
+        for individual_state in active:
+            active_states.update(individual_state.split(","))
+
+    active_states = active_states - split_current_states
 
     canvas.delete("hints")
 
@@ -890,7 +980,8 @@ def maximize_visible_canvas(canvas):
     canvas.yview_moveto(0)
     canvas.xview_moveto(0)
     if hints_visible:
-        next_states = transitions.get(current_state["active"], {}).keys()
+        current = state_representation(current_state)
+        next_states = transitions.get(current, {}).keys()
         highlight_next_states(canvas, next_states)
 
 
@@ -904,7 +995,6 @@ def toggle_color_mode(canvas):
     print(f"Loaded SVG Content Updated: {loaded_svg_content is not None}")
 
     if loaded_svg_content:
-        current = state_representation(current_state)
         render_uml_diagram(
             canvas,
             svg_file_path,
@@ -941,7 +1031,7 @@ def clear_hints(canvas):
 
 
 def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
-    global transition_trace, current_state, state_stack
+    global transition_trace, current_state, state_stack, hints_visible
 
     if state_stack:
         current_state = state_stack[0].copy()
@@ -951,6 +1041,9 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
     state_stack.clear()
 
     transition_trace = []
+
+    clear_hints(canvas)
+    hints_visible = False
 
     update_transition_display(transition_trace_label, reset_button, undo_button)
     render_uml_diagram(
@@ -962,7 +1055,7 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
 
 
 def undo_last_transition(transition_trace_label, reset_button, undo_button, canvas):
-    global current_state, transition_trace, state_stack
+    global current_state, transition_trace, state_stack, hints_visible
 
     if transition_trace:
         if state_stack:
@@ -983,6 +1076,8 @@ def undo_last_transition(transition_trace_label, reset_button, undo_button, canv
             )
 
             undo_button["state"] = "normal"
+            clear_hints(canvas)
+            hints_visible = False
         else:
             print("State stack is empty.")
             messagebox.showinfo("No Undo Available", "No further undo is possible.")
