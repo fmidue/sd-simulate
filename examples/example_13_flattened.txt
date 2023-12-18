@@ -1,0 +1,14 @@
+[*] -> G
+F -> C :a
+G -> C :a
+H -> C :a
+I -> C :a
+H -> B :i
+I -> E :j
+B -> H :b
+C -> F :c
+D -> I :d
+E -> D :h
+F -> F :f
+G -> I :g
+I -> I :e
