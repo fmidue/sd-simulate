@@ -3,42 +3,66 @@ import logging
 import tkinter as tk
 from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
 
+import globals
+from config import (
+    APP_TITLE,
+    SWITCH_ANALYSIS,
+    CANVAS_BG,
+    LABEL_FONT,
+    SCROLLBAR_BG,
+    TRANSITION_TRACE_BG,
+    TRANSITION_TRACE_FG,
+    APP_EXIT_MESSAGE,
+    LOGGING_CONFIG,
+)
+from graph_visualization import show_state_diagram_graph
+from graph_analysis import (
+    on_reachability_analysis,
+    perform_longest_path_analysis,
+    perform_max_transition_path_analysis,
+)
 from GUI import (
     choose_file,
-    enter_state,
-    maximize_visible_canvas,
-    on_canvas_click,
-    on_canvas_scroll,
     reset_trace,
-    show_hints,
-    show_state_diagram_graph,
-    toggle_color_mode,
     undo_last_transition,
     update_transition_display,
+)
+from canvas_operations import (
+    on_canvas_click,
+    enter_state,
     zoom,
+    on_canvas_scroll,
+    maximize_visible_canvas,
+    toggle_mode,
+    show_hints,
 )
 
-logging.basicConfig(
-    filename="app.log",
-    level=logging.DEBUG,
-    format="%(asctime)s %(levelname)s:%(message)s",
-)
+
+logging.basicConfig(**LOGGING_CONFIG)
 
 
 def on_exit():
-    print("Application is exiting...")
+    print(APP_EXIT_MESSAGE)
 
 
 atexit.register(on_exit)
 
-
 debug_mode = False
+
+highlight_button = None
+reset_button = None
+undo_button = None
+hint_button = None
+
+reachability_button = None
+max_nodes_path = None
+max_transition_path = None
 
 
 def run_app():
     global app, transition_trace_label
     app = tk.Tk()
-    app.title("UML Diagram Viewer")
+    app.title(APP_TITLE)
 
     trace_frame = tk.Frame(app)
     trace_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -49,12 +73,30 @@ def run_app():
     right_trace_frame: tk.Frame = tk.Frame(trace_frame)
     right_trace_frame.pack(side=tk.RIGHT)
 
+    def on_file_loaded():
+        global current_transitions, initial_state_key
+        if choose_file(canvas, transition_trace_label, reset_button, undo_button):
+            highlight_button["state"] = "normal"
+            maximize_zoom_button["state"] = "normal"
+            hint_button["state"] = "normal"
+            reset_button["state"] = "disabled"
+            undo_button["state"] = "disabled"
+            button_show_graph["state"] = "normal"
+            reachability_button["state"] = "normal"
+            max_nodes_path["state"] = "normal"
+            max_transition_path["state"] = "normal"
+
+            current_transitions = globals.transitions
+            initial_state_key = globals.initial_state_key
+
+            print("Initial state key after file load:", initial_state_key)
+
     transition_trace_label = tk.Label(
         left_trace_frame,
         text="Transition Trace: ",
-        font=("Helvetica", 10, "bold"),
-        bg="lightgray",
-        fg="black",
+        font=LABEL_FONT,
+        bg=TRANSITION_TRACE_BG,
+        fg=TRANSITION_TRACE_FG,
         relief=tk.FLAT,
         bd=2,
         padx=10,
@@ -87,7 +129,37 @@ def run_app():
             transition_trace_label, reset_button, undo_button, canvas
         ),
     )
-    undo_button.pack(side=tk.LEFT, padx=(0, 10))
+    undo_button.pack(side=tk.LEFT, padx=(5, 5))
+
+    reachability_button = tk.Button(
+        right_trace_frame,
+        text="Reachability Analysis",
+        state="disabled",
+        command=lambda: on_reachability_analysis(
+            current_transitions, initial_state_key
+        ),
+    )
+    reachability_button.pack_forget()
+
+    max_nodes_path = tk.Button(
+        right_trace_frame,
+        text="Max Nodes Analysis",
+        state="disabled",
+        command=lambda: perform_longest_path_analysis(
+            current_transitions, initial_state_key
+        ),
+    )
+    max_nodes_path.pack_forget()
+
+    max_transition_path = tk.Button(
+        right_trace_frame,
+        text="Max transitions Analysis",
+        state="disabled",
+        command=lambda: perform_max_transition_path_analysis(
+            current_transitions, initial_state_key
+        ),
+    )
+    max_transition_path.pack_forget()
 
     update_transition_display(transition_trace_label, reset_button, undo_button)
 
@@ -100,15 +172,44 @@ def run_app():
     right_button_frame: tk.Frame = tk.Frame(button_frame)
     right_button_frame.pack(side=tk.RIGHT)
 
+    load_button: Button = tk.Button(
+        left_button_frame, text="Load UML Diagram", command=on_file_loaded
+    )
+
     canvas_frame: tk.Frame = tk.Frame(app)
     canvas_frame.pack(fill=tk.BOTH, expand=True)
 
-    canvas: Canvas = tk.Canvas(canvas_frame, bg="white")
+    canvas: Canvas = tk.Canvas(canvas_frame, bg=CANVAS_BG)
     canvas.grid(row=0, column=0, sticky="nsew")
 
-    state_name_entry: Entry = tk.Entry(right_button_frame)
-    highlight_button: Button = tk.Button(
+    maximize_zoom_button: Button = tk.Button(
         right_button_frame,
+        text="Full View",
+        state="disabled",
+        command=lambda: maximize_visible_canvas(canvas),
+    )
+
+    mode_switch = tk.Button(
+        right_button_frame,
+        text=SWITCH_ANALYSIS,
+        command=lambda: toggle_mode(
+            canvas,
+            mode_switch,
+            highlight_button,
+            state_name_entry,
+            button_show_graph,
+            hint_button,
+            reset_button,
+            undo_button,
+            reachability_button,
+            max_nodes_path,
+            max_transition_path,
+        ),
+    )
+
+    state_name_entry: Entry = tk.Entry(left_button_frame)
+    highlight_button: Button = tk.Button(
+        left_button_frame,
         text="Enter State Name",
         state="disabled",
         command=lambda: enter_state(
@@ -120,60 +221,29 @@ def run_app():
             app,
         ),
     )
-    maximize_zoom_button: Button = tk.Button(
-        right_button_frame,
-        text="Full View",
-        state="disabled",
-        command=lambda: maximize_visible_canvas(canvas),
-    )
+
     button_show_graph: Button = tk.Button(
-        right_button_frame,
+        left_button_frame,
         text="Show State Diagram Graph",
         state="disabled",
         command=show_state_diagram_graph,
     )
-    button_show_graph.pack(side=tk.LEFT, padx=(0, 25))
 
-    toggle_button: Button = tk.Button(
-        right_button_frame,
-        text="Toggle Color Mode",
-        state="disabled",
-        command=lambda: toggle_color_mode(canvas),
-    )
-
-    if debug_mode:
-        toggle_button.pack(side=tk.RIGHT)
-
-    def on_file_loaded():
-        global transition_trace
-        if choose_file(canvas, transition_trace_label, reset_button, undo_button):
-            highlight_button["state"] = "normal"
-            maximize_zoom_button["state"] = "normal"
-            hint_button["state"] = "normal"
-            reset_button["state"] = "disabled"
-            undo_button["state"] = "disabled"
-            button_show_graph["state"] = "normal"
-            if debug_mode:
-                toggle_button["state"] = "normal"
-
-    load_button: Button = tk.Button(
-        left_button_frame, text="Load UML Diagram", command=on_file_loaded
-    )
-    load_button.pack(side=tk.LEFT, padx=(5, 5))
-
+    load_button.pack(side=tk.LEFT, padx=(5, 25))
     state_name_entry.pack(side=tk.LEFT, padx=(0, 5))
-    highlight_button.pack(side=tk.LEFT, padx=(0, 50))
-    maximize_zoom_button.pack(side=tk.LEFT, padx=(0, 1))
-    toggle_button.pack(padx=(0, 25))
+    highlight_button.pack(side=tk.LEFT, padx=(0, 25))
+    button_show_graph.pack(side=tk.LEFT, padx=(0, 25))
+    maximize_zoom_button.pack(side=tk.LEFT, padx=(0, 5))
+    mode_switch.pack(side=tk.LEFT, padx=(0, 10))
 
     vertical_scroll_bar: Scrollbar = tk.Scrollbar(
-        canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg="gray"
+        canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg=SCROLLBAR_BG
     )
     vertical_scroll_bar.grid(row=0, column=1, sticky="ns")
     canvas.configure(yscrollcommand=vertical_scroll_bar.set)
 
     horizontal_scroll_bar: Scrollbar = tk.Scrollbar(
-        canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg="gray"
+        canvas_frame, orient=tk.HORIZONTAL, command=canvas.xview, bg=SCROLLBAR_BG
     )
     horizontal_scroll_bar.grid(row=1, column=0, sticky="ew")
     canvas.configure(xscrollcommand=horizontal_scroll_bar.set)
@@ -203,7 +273,7 @@ def run_app():
     def on_close():
         """Function to handle the window close event."""
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            logging.info("Application is exiting...")
+            logging.info(APP_EXIT_MESSAGE)
             app.quit()
             app.destroy()
 

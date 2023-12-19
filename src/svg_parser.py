@@ -1,21 +1,23 @@
-import re
 import xml.etree.ElementTree as ET
 from typing import Dict, List
+from config import SVG_NAMESPACE, DEFAULT_TEXT_COLOR, XML_TYPE_1, XML_TYPE_2
+from utilities import svg_path_to_coords
 
 ELEMENTS = []
 STATE_HIERARCHY: Dict[str, List[str]] = {}
 
 
 def identify_xml_type(root):
-    g_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
+    g_elements = root.findall(f".//{SVG_NAMESPACE}g")
     has_id = any(g.get("id") is not None for g in g_elements)
     if has_id:
-        return "Type1"
+        return XML_TYPE_1
     else:
-        return "Type2"
+        return XML_TYPE_2
 
 
 def parse_svg(file_path):
+    global ELEMENTS, STATE_HIERARCHY
     tree = ET.parse(file_path)
     root = tree.getroot()
     result_list = []
@@ -25,7 +27,7 @@ def parse_svg(file_path):
 
     for text_element in text_elements:
         text_fill_color = text_element.get("fill")
-        if text_fill_color != "#000000":
+        if text_fill_color != DEFAULT_TEXT_COLOR:
             matching_rect = None
             for rect_element in rect_elements:
                 rect_stroke_match = rect_element.get("style")
@@ -68,56 +70,14 @@ def parse_svg(file_path):
         print(f"Children: {hierarchy}")
         print()
 
-    global ELEMENTS
     ELEMENTS = result_list
+    print(f"SVG_PARSER ELEMENT CHECK: {ELEMENTS}")
 
-
-def svg_path_to_coords(path_str):
-    x_values = []
-    y_values = []
-
-    commands = re.findall(
-        r"([MmLlHhVvCcSsQqTtAaZz])([^MmLlHhVvCcSsQqTtAaZz]*)", path_str
-    )
-
-    current_x, current_y = 0, 0
-
-    for command, data_str in commands:
-        data = list(map(float, re.findall(r"[-+]?\d*\.\d+|[-+]?\d+", data_str)))
-
-        if command in "M":
-            current_x, current_y = data[0], data[1]
-            x_values.append(current_x)
-            y_values.append(current_y)
-
-        elif command in "h":
-            for x in data:
-                current_x = current_x + x
-                x_values.append(current_x)
-
-        elif command in "v":
-            for y in data:
-                current_y = current_y + y
-                y_values.append(current_y)
-
-        elif command in "c":
-            current_x = current_x + data[4]
-            current_y = current_y + data[5]
-            x_values.append(current_x)
-            y_values.append(current_y)
-
-    if x_values and y_values:
-        x1 = min(x_values)
-        x2 = max(x_values)
-        y1 = min(y_values)
-        y2 = max(y_values)
-
-        return x1, x2, y1, y2
-
-    return None
+    return ELEMENTS, STATE_HIERARCHY
 
 
 def parse_svg2(file_path):
+    global ELEMENTS, STATE_HIERARCHY
     tree = ET.parse(file_path)
     root = tree.getroot()
     result_list = []
@@ -184,8 +144,9 @@ def parse_svg2(file_path):
         print(f"Children: {hierarchy}")
         print()
 
-    global ELEMENTS
     ELEMENTS = result_list
+
+    return ELEMENTS, STATE_HIERARCHY
 
 
 def build_state_hierarchy(states):
