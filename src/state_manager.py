@@ -41,7 +41,9 @@ def read_transitions_from_file(file_path):
                 globals.current_state["active"] = active
                 globals.current_state["remembered"] = remembered
                 globals.initial_state_key = file_state_representation(state_str)
-                print("Initial state line found 2:", globals.initial_state_key)
+                print(
+                    "Initial state line found 2:", globals.initial_state_key
+                )
                 globals.transitions[globals.initial_state_key] = {}
             elif "->" in line:
                 parts = line.split("->")
@@ -72,7 +74,7 @@ def state_parameter(state, transition_trace_label, reset_button, undo_button, pa
 
     print(f"combined_transition_state: {combined_transition_state}")
 
-    available_transitions = globals.transitions.get(9, {})
+    available_transitions = globals.transitions.get(combined_transition_state, {})
 
     if globals.current_state["remembered"] == []:
         combined_transition_state = f"{state}({globals.current_state['active']})"
@@ -254,23 +256,40 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             allowed_transitions_from_children = {}
 
             for child in children:
+                print(f"child: {child} in children: {children}")
                 if child in allowed_transitions:
+                    print(f"allowed_transitions: {allowed_transitions}")
                     child_transitions = allowed_transitions[child]
                     if isinstance(child_transitions, dict):
                         for option, transition_label in child_transitions.items():
                             option_key = option
                             print(f"Child: {child} - Transition_label: {option}")
                             allowed_transitions_from_children[option_key] = child
-                else:
-                    allowed_transitions_from_children[child_transitions] = child
-                print(
-                    f"allowed_transitions_from_children: {allowed_transitions_from_children}"
-                )
+                    else:
+                        allowed_transitions_from_children[child_transitions] = child
+            print(
+                f"allowed_transitions_from_children: {allowed_transitions_from_children}"
+            )
 
             if allowed_transitions_from_children:
-                chosen_transition = ask_user_for_transition(
-                    allowed_transitions_from_children, parent
+                print("+++++++++CASE A")
+                print(
+                    f"+++++++++ length of allowed_transitions_from_children: {len(allowed_transitions_from_children)}"
                 )
+
+                if len(allowed_transitions_from_children) == 1:
+                    print("+++++++++CASE A - 1")
+
+                    chosen_transition = list(allowed_transitions_from_children.items())[
+                        0
+                    ][0]
+
+                else:
+                    print("+++++++++CASE A - 2")
+                    chosen_transition = ask_user_for_transition(
+                        allowed_transitions_from_children, parent
+                    )
+
                 if chosen_transition is not None:
                     globals.state_stack.append(globals.current_state.copy())
                     next_state = allowed_transitions_from_children[chosen_transition]
@@ -285,6 +304,14 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     update_transition_display(
                         transition_trace_label, reset_button, undo_button
                     )
+            else:
+                print("+++++++++CASE B")
+                print(f"No valid transitions found from {current} to {active_clicked}")
+                messagebox.showinfo(
+                    "Invalid Transition",
+                    f"Cannot transition from {current} to {state}",
+                )
+                print("Invalid transition. Ignoring click.")
         else:
             print(f"No valid transitions found from {current} to {active_clicked}")
             messagebox.showinfo(
