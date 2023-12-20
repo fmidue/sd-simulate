@@ -14,6 +14,19 @@ def create_state_diagram_graph():
     graph = Digraph(comment="UML State Diagram")
 
     added_states = set()
+    initial_state = globals.initial_state_key
+
+    if initial_state:
+        graph.node(
+            "start",
+            shape="circle",
+            width=".15",
+            height=".15",
+            label="",
+            style="filled",
+            fillcolor="black",
+        )
+        graph.edge("start", clean_state_representation(initial_state))
 
     for source, dest_dict in globals.transitions.items():
         cleaned_source = clean_state_representation(source)
@@ -48,8 +61,7 @@ def display_state_diagram_graph(graph):
     graph_file_path = STATE_DIAGRAM_GRAPH_PATH
     graph.save(graph_file_path)
 
-    subprocess.run(
-        ["dot", "-Tpng", "-o", "state_diagram_graph.png", graph_file_path])
+    subprocess.run(["dot", "-Tpng", "-o", "state_diagram_graph.png", graph_file_path])
 
     image_path = os.path.abspath("state_diagram_graph.png")
 
