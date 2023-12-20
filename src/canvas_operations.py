@@ -221,12 +221,11 @@ def highlight_next_states(canvas, next_states):
         for individual_state in active:
             active_states.update(individual_state.split(","))
 
-    active_states = active_states - split_current_states
-
     canvas.delete("hints")
 
     for state, coordinates in ELEMENTS:
         if state in active_states:
+            print(f"state as Hint: {state}")
             x1, x2, y1, y2 = [
                 int(coord * globals.current_scale) for coord in coordinates
             ]
