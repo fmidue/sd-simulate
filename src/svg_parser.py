@@ -1,6 +1,12 @@
 import xml.etree.ElementTree as ET
 from typing import Dict, List
-from config import SVG_NAMESPACE, DEFAULT_TEXT_COLOR, XML_TYPE_1, XML_TYPE_2
+from config import (
+    SVG_NAMESPACE,
+    DEFAULT_TEXT_COLOR,
+    XML_TYPE_1,
+    XML_TYPE_2,
+    END_STATE_STROKE_COLOR,
+)
 from utilities import svg_path_to_coords
 
 ELEMENTS = []
@@ -46,21 +52,52 @@ def parse_svg(file_path):
                 y2 = rect_y + rect_height
                 result_list.append((state_name, (x1, x2, y1, y2)))
 
-    for i in range(len(ellipse_elements) - 1):
+    for i in range(len(ellipse_elements)):
         outer_ellipse = ellipse_elements[i]
-        inner_ellipse = ellipse_elements[i + 1]
+        for j in range(len(ellipse_elements)):
+            if i == j:
+                continue
 
-        if outer_ellipse.get("cx") == inner_ellipse.get("cx") and outer_ellipse.get(
-            "cy"
-        ) == inner_ellipse.get("cy"):
+            inner_ellipse = ellipse_elements[j]
+            outer_cx, outer_cy = float(outer_ellipse.get("cx")), float(
+                outer_ellipse.get("cy")
+            )
+            outer_rx, outer_ry = float(outer_ellipse.get("rx")), float(
+                outer_ellipse.get("ry")
+            )
+
+            print(
+                f"Outer ellipse {i}: center=({outer_cx}, {outer_cy}), rx={outer_rx}, ry={outer_ry}"
+            )
+
+            inner_cx, inner_cy = float(inner_ellipse.get("cx")), float(
+                inner_ellipse.get("cy")
+            )
+            inner_rx, inner_ry = float(inner_ellipse.get("rx")), float(
+                inner_ellipse.get("ry")
+            )
+
+            print(
+                f"Checking against inner ellipse {j}: center=({inner_cx}, {inner_cy}), rx={inner_rx}, ry={inner_ry}"
+            )
+
             if (
-                outer_ellipse.get("fill") == "none"
-                and inner_ellipse.get("fill") != "none"
+                outer_cx - outer_rx <= inner_cx - inner_rx
+                and outer_cx + outer_rx >= inner_cx + inner_rx
+                and outer_cy - outer_ry <= inner_cy - inner_ry
+                and outer_cy + outer_ry >= inner_cy + inner_ry
             ):
-                cx, cy = float(outer_ellipse.get("cx")), float(outer_ellipse.get("cy"))
-                rx, ry = float(outer_ellipse.get("rx")), float(outer_ellipse.get("ry"))
-                end_state_bounds = (cx - rx, cx + rx, cy - ry, cy + ry)
+                print(
+                    f"Inner ellipse {j} is inside outer ellipse {i}. Marking as end state."
+                )
+                end_state_bounds = (
+                    outer_cx - outer_rx,
+                    outer_cx + outer_rx,
+                    outer_cy - outer_ry,
+                    outer_cy + outer_ry,
+                )
                 result_list.append(("[**]", end_state_bounds))
+                break
 
     result_list.sort(key=lambda x: (len(STATE_HIERARCHY.get(x[0], [])), x[1][0]))
     STATE_HIERARCHY.update(build_state_hierarchy(result_list))
@@ -81,6 +118,20 @@ def parse_svg2(file_path):
     tree = ET.parse(file_path)
     root = tree.getroot()
     result_list = []
+    end_state = None
+
+    for group_element in root.findall(".//{http://www.w3.org/2000/svg}g"):
+        path_stroke_color = group_element.get("stroke")
+        if path_stroke_color == END_STATE_STROKE_COLOR:
+            path = group_element.find(".//{http://www.w3.org/2000/svg}path")
+            if path is not None:
+                end_state = path.get("d")
+                coordinates = svg_path_to_coords(end_state)
+                if coordinates:
+                    result_list.append(("[**]", coordinates))
+                    print("Added End State")
+                    print(f"Related Path: {end_state}")
+            break
 
     group_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
 
@@ -106,13 +157,11 @@ def parse_svg2(file_path):
         related_path = None
         for path_element in root.findall(".//{http://www.w3.org/2000/svg}g"):
             path_stroke_color = path_element.get("stroke")
-
             if path_stroke_color is not None:
                 path = path_element.find(".//{http://www.w3.org/2000/svg}path")
                 print(f"Path Stroke Color: {path_stroke_color}")
                 if path_stroke_color == group_fill_color:
                     related_path = path.get("d")
-                    break
 
         if related_path:
             coordinates = svg_path_to_coords(related_path)
