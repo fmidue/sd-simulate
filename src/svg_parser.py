@@ -5,7 +5,6 @@ from config import (
     DEFAULT_TEXT_COLOR,
     XML_TYPE_1,
     XML_TYPE_2,
-    END_STATE_STROKE_COLOR,
 )
 from utilities import svg_path_to_coords
 
@@ -118,27 +117,17 @@ def parse_svg2(file_path):
     tree = ET.parse(file_path)
     root = tree.getroot()
     result_list = []
+    colored_list = []
     end_state = None
-
-    for group_element in root.findall(".//{http://www.w3.org/2000/svg}g"):
-        path_stroke_color = group_element.get("stroke")
-        if path_stroke_color == END_STATE_STROKE_COLOR:
-            path = group_element.find(".//{http://www.w3.org/2000/svg}path")
-            if path is not None:
-                end_state = path.get("d")
-                coordinates = svg_path_to_coords(end_state)
-                if coordinates:
-                    result_list.append(("[**]", coordinates))
-                    print("Added End State")
-                    print(f"Related Path: {end_state}")
-            break
 
     group_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
 
     for group_element in group_elements:
         group_fill_color = group_element.get("fill")
         print(f"Group Fill Color: {group_fill_color}")
-        if group_fill_color == "rgb(0,0,0)":
+        if group_fill_color != "rgb(0,0,0)":
+            colored_list.append(group_fill_color)
+        else:
             print("here skipped black colored group")
             continue
 
@@ -148,7 +137,7 @@ def parse_svg2(file_path):
             if text_element.text:
                 state_name = text_element.text.strip()
             else:
-                state_name = "''"
+                state_name = "[**]"
             print(f"Found Text Element: {state_name}")
         else:
             print("No Text Element found in group")
@@ -171,6 +160,21 @@ def parse_svg2(file_path):
             print(f"Related Path: {related_path}")
         else:
             print(f"No matching path found for state: {state_name}")
+
+    for group_element in group_elements:
+        path_stroke_color = group_element.get("stroke")
+        if path_stroke_color != "rgb(0,0,0)":
+            for fill in colored_list:
+                if path_stroke_color == fill:
+                    path = group_element.find(".//{http://www.w3.org/2000/svg}path")
+                    if path is not None:
+                        end_state = path.get("d")
+                        coordinates = svg_path_to_coords(end_state)
+                        if coordinates:
+                            result_list.append(("[**]", coordinates))
+                            print("Added End State")
+                            print(f"Related Path: {end_state}")
+            break
 
     for state, coordinates in result_list:
         print(f"State: {state}")
