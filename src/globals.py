@@ -21,6 +21,9 @@ original_width = None
 original_height = None
 svg_file_path = None
 svg_rainbow_file_path = None
-
 transition_trace_label = None
 transitions_file_path = None
+show_parent_highlight = True
+analysis_results_text = None
+analysis_results_visible = False
+full_content = None

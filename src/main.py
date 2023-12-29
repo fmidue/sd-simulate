@@ -1,12 +1,11 @@
 import atexit
 import logging
 import tkinter as tk
-from tkinter import Button, Canvas, Entry, Scrollbar, messagebox
+from tkinter import Button, Canvas, Entry, Scrollbar, messagebox, Checkbutton, IntVar
 
 import globals
 from config import (
     APP_TITLE,
-    SWITCH_ANALYSIS,
     CANVAS_BG,
     LABEL_FONT,
     SCROLLBAR_BG,
@@ -28,12 +27,12 @@ from GUI import (
     update_transition_display,
 )
 from canvas_operations import (
+    render_uml_diagram,
     on_canvas_click,
     enter_state,
     zoom,
     on_canvas_scroll,
     maximize_visible_canvas,
-    toggle_mode,
     show_hints,
 )
 
@@ -88,6 +87,8 @@ def run_app():
 
             current_transitions = globals.transitions
             initial_state_key = globals.initial_state_key
+            globals.analysis_results_text.pack_forget()
+            globals.analysis_results_visible = False
 
             print("Initial state key after file load:", initial_state_key)
 
@@ -103,6 +104,17 @@ def run_app():
         pady=5,
     )
     transition_trace_label.pack()
+
+    show_parent_highlight_var = IntVar(value=1)
+    show_parent_highlight_checkbox = Checkbutton(
+        right_trace_frame,
+        text="Show Containment",
+        variable=show_parent_highlight_var,
+        command=lambda: [setattr(globals, 'show_parent_highlight', bool(
+            show_parent_highlight_var.get())), render_uml_diagram(canvas)]
+
+    )
+    show_parent_highlight_checkbox.pack(side=tk.LEFT, padx=(0, 10))
 
     hint_button = tk.Button(
         right_trace_frame,
@@ -131,37 +143,8 @@ def run_app():
     )
     undo_button.pack(side=tk.LEFT, padx=(5, 5))
 
-    reachability_button = tk.Button(
-        right_trace_frame,
-        text="Reachability Analysis",
-        state="disabled",
-        command=lambda: on_reachability_analysis(
-            current_transitions, initial_state_key
-        ),
-    )
-    reachability_button.pack_forget()
-
-    max_nodes_path = tk.Button(
-        right_trace_frame,
-        text="Max Nodes Analysis",
-        state="disabled",
-        command=lambda: perform_longest_path_analysis(
-            current_transitions, initial_state_key
-        ),
-    )
-    max_nodes_path.pack_forget()
-
-    max_transition_path = tk.Button(
-        right_trace_frame,
-        text="Max transitions Analysis",
-        state="disabled",
-        command=lambda: perform_max_transition_path_analysis(
-            current_transitions, initial_state_key
-        ),
-    )
-    max_transition_path.pack_forget()
-
-    update_transition_display(transition_trace_label, reset_button, undo_button)
+    update_transition_display(transition_trace_label,
+                              reset_button, undo_button)
 
     button_frame = tk.Frame(app)
     button_frame.pack(side=tk.TOP, fill=tk.X)
@@ -177,7 +160,29 @@ def run_app():
     )
 
     canvas_frame: tk.Frame = tk.Frame(app)
-    canvas_frame.pack(fill=tk.BOTH, expand=True)
+    canvas_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    globals.analysis_results_text = tk.Text(app, height=25, width=50)
+    globals.analysis_results_text.pack(side=tk.RIGHT, fill=tk.Y)
+    globals.analysis_results_text.config(state=tk.DISABLED)
+    globals.analysis_results_text.pack_forget()
+
+    def show_analysis_results(title, content):
+        new_content = f"{title}\n\n{content}"
+        globals.analysis_results_text.config(state=tk.NORMAL)
+        globals.analysis_results_text.delete("1.0", tk.END)
+        globals.analysis_results_text.insert(tk.END, new_content)
+        globals.analysis_results_text.config(state=tk.DISABLED)
+        if not globals.analysis_results_visible:
+            globals.analysis_results_text.pack(side=tk.RIGHT, fill=tk.Y)
+            globals.analysis_results_visible = True
+        else:
+            if new_content != globals.full_content:
+                print("nothing happens!")
+            else:
+                globals.analysis_results_text.pack_forget()
+                globals.analysis_results_visible = False
+        globals.full_content = new_content
 
     canvas: Canvas = tk.Canvas(canvas_frame, bg=CANVAS_BG)
     canvas.grid(row=0, column=0, sticky="nsew")
@@ -187,24 +192,6 @@ def run_app():
         text="Full View",
         state="disabled",
         command=lambda: maximize_visible_canvas(canvas),
-    )
-
-    mode_switch = tk.Button(
-        right_button_frame,
-        text=SWITCH_ANALYSIS,
-        command=lambda: toggle_mode(
-            canvas,
-            mode_switch,
-            highlight_button,
-            state_name_entry,
-            button_show_graph,
-            hint_button,
-            reset_button,
-            undo_button,
-            reachability_button,
-            max_nodes_path,
-            max_transition_path,
-        ),
     )
 
     state_name_entry: Entry = tk.Entry(left_button_frame)
@@ -229,12 +216,41 @@ def run_app():
         command=show_state_diagram_graph,
     )
 
+    reachability_button = tk.Button(
+        left_button_frame,
+        text="Reachability Analysis",
+        state="disabled",
+        command=lambda: on_reachability_analysis(
+            current_transitions, initial_state_key, show_analysis_results
+        ),
+    )
+
+    max_nodes_path = tk.Button(
+        left_button_frame,
+        text="Max Nodes Analysis",
+        state="disabled",
+        command=lambda: perform_longest_path_analysis(
+            current_transitions, initial_state_key, show_analysis_results
+        ),
+    )
+
+    max_transition_path = tk.Button(
+        left_button_frame,
+        text="Max transitions Analysis",
+        state="disabled",
+        command=lambda: perform_max_transition_path_analysis(
+            current_transitions, initial_state_key, show_analysis_results
+        ),
+    )
+
     load_button.pack(side=tk.LEFT, padx=(5, 25))
     state_name_entry.pack(side=tk.LEFT, padx=(0, 5))
-    highlight_button.pack(side=tk.LEFT, padx=(0, 25))
-    button_show_graph.pack(side=tk.LEFT, padx=(0, 25))
-    maximize_zoom_button.pack(side=tk.LEFT, padx=(0, 5))
-    mode_switch.pack(side=tk.LEFT, padx=(0, 10))
+    highlight_button.pack(side=tk.LEFT, padx=(0, 40))
+    button_show_graph.pack(side=tk.LEFT, padx=(0, 5))
+    reachability_button.pack(side=tk.LEFT, padx=(0, 5))
+    max_nodes_path.pack(side=tk.LEFT, padx=(0, 5))
+    max_transition_path.pack(side=tk.LEFT, padx=(0, 40))
+    maximize_zoom_button.pack(side=tk.LEFT, padx=(0, 15))
 
     vertical_scroll_bar: Scrollbar = tk.Scrollbar(
         canvas_frame, orient=tk.VERTICAL, command=canvas.yview, bg=SCROLLBAR_BG

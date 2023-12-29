@@ -257,16 +257,18 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
             for child in children:
                 print(f"child: {child} in children: {children}")
-                if child in allowed_transitions:
-                    print(f"allowed_transitions: {allowed_transitions}")
-                    child_transitions = allowed_transitions[child]
-                    if isinstance(child_transitions, dict):
-                        for option, transition_label in child_transitions.items():
-                            option_key = option
-                            print(f"Child: {child} - Transition_label: {option}")
-                            allowed_transitions_from_children[option_key] = child
-                    else:
-                        allowed_transitions_from_children[child_transitions] = child
+                for combined_state, transitions in allowed_transitions.items():
+                    if child in combined_state.split(","):
+                        if isinstance(transitions, dict):
+                            for option, transition_label in transitions.items():
+                                allowed_transitions_from_children[
+                                    option
+                                ] = combined_state
+                        else:
+                            allowed_transitions_from_children[
+                                transitions
+                            ] = combined_state
+
             print(
                 f"allowed_transitions_from_children: {allowed_transitions_from_children}"
             )
@@ -279,6 +281,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
                 if len(allowed_transitions_from_children) == 1:
                     print("+++++++++CASE A - 1")
+                    print(
+                        f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
+                    )
 
                     chosen_transition = list(allowed_transitions_from_children.items())[
                         0
@@ -286,6 +291,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
                 else:
                     print("+++++++++CASE A - 2")
+                    print(
+                        f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
+                    )
                     chosen_transition = ask_user_for_transition(
                         allowed_transitions_from_children, parent
                     )
@@ -309,14 +317,14 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 print(f"No valid transitions found from {current} to {active_clicked}")
                 messagebox.showinfo(
                     "Invalid Transition",
-                    f"Cannot transition from {current} to (within) {state}",
+                    f"Cannot transition from {current} to {state}",
                 )
                 print("Invalid transition. Ignoring click.")
         else:
             print(f"No valid transitions found from {current} to {active_clicked}")
             messagebox.showinfo(
                 "Invalid Transition",
-                f"Cannot transition from {current} to (within) {state}",
+                f"Cannot transition from {current} to {state}",
             )
             print("Invalid transition. Ignoring click.")
     else:

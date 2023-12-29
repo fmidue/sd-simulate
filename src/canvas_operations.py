@@ -8,7 +8,6 @@ from config import (
     HIGHLIGHT_COLOR_ACTIVE,
     HIGHLIGHT_COLOR_REMEMBERED,
     HIGHLIGHT_COLOR_HINTS,
-    SWITCH_SIMULATION,
 )
 from utilities import state_representation, parse_state
 import globals
@@ -106,7 +105,9 @@ def render_uml_diagram(canvas):
             print(f"Marked active state: {active_state}, Coordinates: {marked_states}")
             print("STATE_HIERARCHY Condition reached")
             for state, hierarchy in STATE_HIERARCHY.items():
-                if state == active_state or state in marked_states:
+                if state == active_state or (
+                    globals.show_parent_highlight and state in marked_states
+                ):
                     print("STATE_HIERARCHY Condition :  condition passed")
                     print(f"Highlighting active state: {active_state}")
                     for element in ELEMENTS:
@@ -116,11 +117,13 @@ def render_uml_diagram(canvas):
                                 int(coord * globals.current_scale)
                                 for coord in element[1]
                             ]
+
                             outline_color = (
-                                HIGHLIGHT_COLOR_OUTLINE
-                                if state != active_state
-                                else HIGHLIGHT_COLOR_ACTIVE
+                                HIGHLIGHT_COLOR_ACTIVE
+                                if state == active_state
+                                else HIGHLIGHT_COLOR_OUTLINE
                             )
+
                             outline_width = 2 if state != active_state else 3
                             canvas.create_rectangle(
                                 x1,
@@ -220,6 +223,10 @@ def highlight_next_states(canvas, next_states):
         active, _ = parse_state(state)
         for individual_state in active:
             active_states.update(individual_state.split(","))
+
+    if len(split_current_states) > 1:
+        print(f"-----=-=-=-=-=-=-split current: {split_current_states}")
+        active_states = active_states - split_current_states
 
     canvas.delete("hints")
 

@@ -1,4 +1,3 @@
-from graphviz import Digraph
 from tkinter import messagebox
 
 
@@ -17,7 +16,7 @@ def perform_reachability_analysis(transitions, initial_state):
     return visited, unreachable_states
 
 
-def on_reachability_analysis(transitions, initial_state_key):
+def on_reachability_analysis(transitions, initial_state_key, show_results):
     print("initial_state_key", initial_state_key)
     if initial_state_key is None:
         messagebox.showerror("Error", "Initial state not set.")
@@ -28,32 +27,15 @@ def on_reachability_analysis(transitions, initial_state_key):
     )
 
     if unreachable_states:
-        messagebox.showinfo(
-            "Reachability Analysis", f"Unreachable States: {unreachable_states}"
-        )
+        results = f"Unreachable States: {unreachable_states}"
+        show_results("Reachability Analysis:", results)
+
     else:
-        messagebox.showinfo(
-            "Reachability Analysis", "All states are reachable from the initial state."
-        )
+        results = "All states are reachable from the initial state."
+        show_results("Reachability Analysis:", results)
 
 
-def show_reachability_graph(transitions, reachable_states, unreachable_states):
-    graph = Digraph(comment="Reachability Analysis")
-
-    for state in transitions.keys():
-        if state in reachable_states:
-            graph.node(state, color="green")
-        elif state in unreachable_states:
-            graph.node(state, color="red")
-
-    for source, dest_dict in transitions.items():
-        for dest in dest_dict:
-            graph.edge(source, dest)
-
-    graph.render("reachability_analysis", view=True, format="png")
-
-
-def perform_longest_path_analysis(transitions, initial_state_key):
+def perform_longest_path_analysis(transitions, initial_state_key, show_results):
     def find_longest_paths(current_state, path, visited):
         visited.add(current_state)
         paths = []
@@ -72,11 +54,13 @@ def perform_longest_path_analysis(transitions, initial_state_key):
 
     transition_sequences = []
     for path in longest_paths:
-        sequence = [f"{src}->{dest} ({label})" for src, dest, label in path]
+        sequence = [f"{label}" for src, dest, label in path]
         transition_sequences.append(sequence)
 
-    transition_sequences_str = [" , ".join(seq) for seq in transition_sequences]
-    messagebox.showinfo("Longest Path Analysis", "\n".join(transition_sequences_str))
+    transition_sequences_str = [" -> ".join(seq) for seq in transition_sequences]
+
+    results = "\n".join(transition_sequences_str)
+    show_results("Longest Path Analysis:", results)
 
 
 def find_max_transition_path(transitions, current_state, path, visited_transitions):
@@ -95,21 +79,16 @@ def find_max_transition_path(transitions, current_state, path, visited_transitio
     return max_path
 
 
-def perform_max_transition_path_analysis(transitions, initial_state_key):
+def perform_max_transition_path_analysis(transitions, initial_state_key, show_results):
     max_transition_path = find_max_transition_path(
         transitions, initial_state_key, [], set()
     )
 
     if not max_transition_path:
-        messagebox.showinfo(
-            "Max Transition Path Analysis",
-            "No path found that traverses every transition at least once.",
-        )
+        results = "No path found that traverses every transition at least once."
+        show_results("Max Transition Path Analysis:", results)
         return
 
-    transition_sequence = [
-        f"{src}->{dest} ({label})" for src, dest, label in max_transition_path
-    ]
-    messagebox.showinfo(
-        "Max Transition Path Analysis", " , ".join(transition_sequence)
-    )
+    transition_sequence = [f"{label}" for src, dest, label in max_transition_path]
+    results = " -> ".join(transition_sequence)
+    show_results("Max Transition Path Analysis:", results)
