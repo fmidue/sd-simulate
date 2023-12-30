@@ -301,7 +301,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 if chosen_transition is not None:
                     globals.state_stack.append(globals.current_state.copy())
                     next_state = allowed_transitions_from_children[chosen_transition]
-                    print(f"Chooen next state: {next_state}")
+                    print(f"Chosen next state: {next_state}")
                     active, new_remembered = parse_state(next_state)
                     if active != active_current:
                         state_changed = True
