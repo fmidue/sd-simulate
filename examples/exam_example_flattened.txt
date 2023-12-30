@@ -17,4 +17,4 @@ Standby(Alarm, CD) -> (Alarm, CD) : on
 (Current Time, CD) -> Standby(Current Time, CD) : off
 Standby(Current Time, CD) -> (Current Time, CD) : on
 (Current Time, Radio) -> [**] : exit
-(Radio, Alarm) -> [**] : exit
+(Alarm, Radio) -> [**] : exit
