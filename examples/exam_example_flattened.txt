@@ -1,6 +1,7 @@
 [*] -> Standby
 Standby -> (Current Time, Radio) : on
 (Current Time, Radio) -> (Alarm, Radio) : toAlarm
+(Current Time, Radio) -> (Current Time, Radio) : x
 (Alarm, Radio) -> (Current Time, Radio) : toTime
 (Current Time, CD) -> (Alarm, CD) : toAlarm
 (Alarm, CD) -> (Current Time, CD) : toTime
