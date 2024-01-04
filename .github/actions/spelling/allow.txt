@@ -21,10 +21,12 @@ cairosvg
 captionpos
 clearpage
 concat
+doublecircle
 firstline
 fmap
 foldl
 foldr
+fontsize
 fst
 github
 graphviz
