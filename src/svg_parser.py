@@ -118,7 +118,9 @@ def parse_svg2(file_path):
     root = tree.getroot()
     result_list = []
     colored_list = []
+    text_list = []
     end_state = None
+    end_state_color = None
 
     group_elements = root.findall(".//{http://www.w3.org/2000/svg}g")
 
@@ -135,12 +137,12 @@ def parse_svg2(file_path):
 
         if text_element is not None:
             if text_element.text:
+                text_list.append(text_element.text)
                 state_name = text_element.text.strip()
-            else:
-                state_name = "[**]"
             print(f"Found Text Element: {state_name}")
         else:
-            print("No Text Element found in group")
+            end_state_color = group_fill_color
+            print("End state found, No Text Element found in group")
             continue
 
         related_path = None
@@ -163,17 +165,18 @@ def parse_svg2(file_path):
 
     for group_element in group_elements:
         path_stroke_color = group_element.get("stroke")
-        if path_stroke_color != "rgb(0,0,0)":
-            for fill in colored_list:
-                if path_stroke_color == fill:
-                    path = group_element.find(".//{http://www.w3.org/2000/svg}path")
-                    if path is not None:
-                        end_state = path.get("d")
-                        coordinates = svg_path_to_coords(end_state)
-                        if coordinates:
-                            result_list.append(("[**]", coordinates))
-                            print("Added End State")
-                            print(f"Related Path: {end_state}")
+        if path_stroke_color == end_state_color and path_stroke_color != "rgb(0,0,0)":
+            print(
+                f"**********Path Stroke Color: {path_stroke_color}, equal to to end_state_color: {end_state_color}******"
+            )
+            path = group_element.find(".//{http://www.w3.org/2000/svg}path")
+            if path is not None:
+                end_state = path.get("d")
+                coordinates = svg_path_to_coords(end_state)
+                if coordinates:
+                    result_list.append(("[**]", coordinates))
+                    print("Added End State")
+                    print(f"Related Path: {end_state}")
             break
 
     for state, coordinates in result_list:
