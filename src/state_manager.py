@@ -41,9 +41,7 @@ def read_transitions_from_file(file_path):
                 globals.current_state["active"] = active
                 globals.current_state["remembered"] = remembered
                 globals.initial_state_key = file_state_representation(state_str)
-                print(
-                    "Initial state line found 2:", globals.initial_state_key
-                )
+                print("Initial state line found 2:", globals.initial_state_key)
                 globals.transitions[globals.initial_state_key] = {}
             elif "->" in line:
                 parts = line.split("->")
@@ -156,13 +154,20 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         return all_children
 
     def is_part_of_combined_state(clicked_state, allowed_transitions):
-        for transition_state in allowed_transitions:
-            active_transition_states, _ = parse_state(transition_state)
-            for active_state in active_transition_states:
-                individual_states = active_state.split(",")
-                if clicked_state in individual_states:
-                    return transition_state
-        return None
+        active_current, _ = parse_state(current)
+        for active_state in active_current:
+            individual_states = active_state.split(",")
+            if clicked_state in individual_states and current in allowed_transitions:
+                return current
+
+            else:
+                for transition_state in allowed_transitions:
+                    active_transition_states, _ = parse_state(transition_state)
+                    for active_state in active_transition_states:
+                        individual_states = active_state.split(",")
+                        if clicked_state in individual_states:
+                            return transition_state
+                return None
 
     current = globals.current_state
 

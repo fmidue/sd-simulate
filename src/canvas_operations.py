@@ -224,7 +224,7 @@ def highlight_next_states(canvas, next_states):
         for individual_state in active:
             active_states.update(individual_state.split(","))
 
-    if len(split_current_states) > 1:
+    if len(split_current_states) > 1 and current not in next_states:
         print(f"-----=-=-=-=-=-=-split current: {split_current_states}")
         active_states = active_states - split_current_states
 
