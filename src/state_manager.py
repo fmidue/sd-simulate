@@ -154,20 +154,14 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         return all_children
 
     def is_part_of_combined_state(clicked_state, allowed_transitions):
-        active_current, _ = parse_state(current)
-        for active_state in active_current:
-            individual_states = active_state.split(",")
-            if clicked_state in individual_states and current in allowed_transitions:
-                return current
-
-            else:
-                for transition_state in allowed_transitions:
-                    active_transition_states, _ = parse_state(transition_state)
-                    for active_state in active_transition_states:
-                        individual_states = active_state.split(",")
-                        if clicked_state in individual_states:
-                            return transition_state
-                return None
+        relevant_combined_states = []
+        for transition_state in allowed_transitions:
+            active_transition_states, _ = parse_state(transition_state)
+            for active_state in active_transition_states:
+                individual_states = active_state.split(",")
+                if clicked_state in individual_states:
+                    relevant_combined_states.append(transition_state)
+        return relevant_combined_states
 
     current = globals.current_state
 
@@ -187,29 +181,40 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         print(
             f"Clicked State: {state}, Allowed Transitions from {current}: {allowed_transitions}"
         )
+        combined_states = is_part_of_combined_state(state, allowed_transitions)
 
-        transition_state = is_part_of_combined_state(
-            state, globals.transitions.get(current, {})
-        )
-        print(f"Transition state after checking combined states: {transition_state}")
-
-        print(f"state: {state} in allowed_transitions: {allowed_transitions}")
-        if transition_state in globals.transitions.get(current, {}):
-            print(
-                f"Transition state after checking combined states: {transition_state}"
-            )
+        if combined_states:
             chosen_transition = None
-            if isinstance(globals.transitions[current][transition_state], dict):
+            transition_to_combined_state_map = {}
+
+            if len(combined_states) > 1:
+                for combined_state in combined_states:
+                    for transition_option in globals.transitions[current][
+                        combined_state
+                    ]:
+                        transition_to_combined_state_map[
+                            transition_option
+                        ] = combined_state
                 chosen_transition = ask_user_for_transition(
-                    globals.transitions[current][transition_state], parent
+                    transition_to_combined_state_map, parent
                 )
             else:
-                chosen_transition = globals.transitions[current][transition_state]
+                combined_state = combined_states[0]
+                if isinstance(combined_state, list):
+                    combined_state = combined_state[0]
+                if isinstance(globals.transitions[current][combined_state], dict):
+                    chosen_transition = ask_user_for_transition(
+                        globals.transitions[current][combined_state], parent
+                    )
+                else:
+                    chosen_transition = globals.transitions[current][combined_state]
 
             if chosen_transition is not None:
-                print(f"Handling transition to combined state {transition_state}")
+                target_combined_state = transition_to_combined_state_map.get(
+                    chosen_transition, combined_state
+                )
                 globals.state_stack.append(globals.current_state.copy())
-                active_next, remembered_next = parse_state(transition_state)
+                active_next, remembered_next = parse_state(target_combined_state)
                 if "," in active_next[0]:
                     active_next = active_next[0].split(",")
                 globals.current_state["active"] = active_next
