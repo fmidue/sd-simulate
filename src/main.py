@@ -8,7 +8,9 @@ from config import (
     APP_TITLE,
     CANVAS_BG,
     LABEL_FONT,
+    TITLE_FONT,
     SCROLLBAR_BG,
+    TRANSITION_TRACE_TITLE_BG,
     TRANSITION_TRACE_BG,
     TRANSITION_TRACE_FG,
     APP_EXIT_MESSAGE,
@@ -66,11 +68,17 @@ def run_app():
     trace_frame = tk.Frame(app)
     trace_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-    left_trace_frame: tk.Frame = tk.Frame(trace_frame)
-    left_trace_frame.pack(side=tk.LEFT)
-
     right_trace_frame: tk.Frame = tk.Frame(trace_frame)
     right_trace_frame.pack(side=tk.RIGHT)
+
+    transition_trace_frame = tk.Frame(app)
+    transition_trace_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+    left_transition_trace_frame: tk.Frame = tk.Frame(transition_trace_frame)
+    left_transition_trace_frame.pack(side=tk.LEFT)
+
+    transition_trace_container = tk.Frame(left_transition_trace_frame)
+    transition_trace_container.pack(fill=tk.BOTH, expand=True)
 
     def on_file_loaded():
         global current_transitions, initial_state_key
@@ -92,27 +100,23 @@ def run_app():
 
             print("Initial state key after file load:", initial_state_key)
 
-    transition_trace_label = tk.Label(
-        left_trace_frame,
-        text="Transition Trace: ",
-        font=LABEL_FONT,
-        bg=TRANSITION_TRACE_BG,
-        fg=TRANSITION_TRACE_FG,
-        relief=tk.FLAT,
-        bd=2,
-        padx=10,
-        pady=5,
-    )
-    transition_trace_label.pack()
+    def update_text_width(event):
+        canvas_width = canvas.winfo_width()
+        chars_per_pixel = 0.13
+        text_width_in_chars = int(canvas_width * chars_per_pixel)
+        transition_trace_label.config(width=text_width_in_chars)
 
     show_parent_highlight_var = IntVar(value=1)
     show_parent_highlight_checkbox = Checkbutton(
         right_trace_frame,
         text="Show Containment",
         variable=show_parent_highlight_var,
-        command=lambda: [setattr(globals, 'show_parent_highlight', bool(
-            show_parent_highlight_var.get())), render_uml_diagram(canvas)]
-
+        command=lambda: [
+            setattr(
+                globals, "show_parent_highlight", bool(show_parent_highlight_var.get())
+            ),
+            render_uml_diagram(canvas),
+        ],
     )
     show_parent_highlight_checkbox.pack(side=tk.LEFT, padx=(0, 10))
 
@@ -142,9 +146,6 @@ def run_app():
         ),
     )
     undo_button.pack(side=tk.LEFT, padx=(5, 5))
-
-    update_transition_display(transition_trace_label,
-                              reset_button, undo_button)
 
     button_frame = tk.Frame(app)
     button_frame.pack(side=tk.TOP, fill=tk.X)
@@ -193,6 +194,36 @@ def run_app():
         state="disabled",
         command=lambda: maximize_visible_canvas(canvas),
     )
+
+    transition_trace_title = tk.Label(
+        transition_trace_container,
+        text="Transition Trace",
+        font=TITLE_FONT,
+        bg=TRANSITION_TRACE_TITLE_BG,
+        fg=TRANSITION_TRACE_FG,
+        relief=tk.FLAT,
+        bd=2,
+        padx=10,
+        pady=5,
+    )
+    transition_trace_title.pack(side=tk.LEFT, fill=tk.Y)
+
+    transition_trace_label = tk.Text(
+        transition_trace_container,
+        font=LABEL_FONT,
+        bg=TRANSITION_TRACE_BG,
+        fg=TRANSITION_TRACE_FG,
+        relief=tk.FLAT,
+        bd=2,
+        padx=10,
+        pady=5,
+        wrap=tk.WORD,
+        height=1,
+    )
+    transition_trace_label.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+    transition_trace_label.config(state=tk.DISABLED)
+
+    update_transition_display(transition_trace_label, reset_button, undo_button)
 
     state_name_entry: Entry = tk.Entry(left_button_frame)
     highlight_button: Button = tk.Button(
@@ -267,6 +298,7 @@ def run_app():
     canvas_frame.grid_rowconfigure(0, weight=1)
     canvas_frame.grid_columnconfigure(0, weight=1)
 
+    canvas.bind("<Configure>", update_text_width)
     canvas.bind("<Control-MouseWheel>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-4>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-5>", lambda event: zoom(event, canvas))

@@ -11,21 +11,23 @@ class TransitionDialog(tk.Toplevel):
         super().__init__(parent)
         self.trans_value = tk.StringVar()
         self.selected_option = None
+        self.user_made_choice = False
 
-        options = list(transitions_dict.items())
+        self.transient(parent)
+        self.grab_set()
+        sorted_transitions = dict(sorted(transitions_dict.items()))
 
-        if "" in transitions_dict:
-            transitions_dict[" "] = transitions_dict[""]
-            del transitions_dict[""]
+        if "" in sorted_transitions:
+            sorted_transitions[" "] = sorted_transitions[""]
+            del sorted_transitions[""]
 
-        if len(options) == 1:
-            self.selected_option = options[0][0]
+        if len(sorted_transitions) == 1:
+            self.selected_option = next(iter(sorted_transitions))
+            self.user_made_choice = True
             self.destroy()
             return
 
-        first_key = next(iter(transitions_dict)) if transitions_dict else None
-        if first_key:
-            self.trans_value.set(first_key)
+        self.trans_value.set(next(iter(sorted_transitions)))
 
         radio_button_font = RADIO_BUTTON_FONT
 
@@ -36,7 +38,7 @@ class TransitionDialog(tk.Toplevel):
         )
         label.pack(pady=(10, 5), padx=25)
 
-        for key, label in transitions_dict.items():
+        for key, label in sorted_transitions.items():
             radio_button = tk.Radiobutton(
                 self,
                 text=key,
@@ -65,6 +67,12 @@ class TransitionDialog(tk.Toplevel):
 
     def on_ok(self):
         self.selected_option = self.trans_value.get()
+        self.user_made_choice = True
+        self.grab_release()
+        self.destroy()
+
+    def on_close(self):
+        self.grab_release()
         self.destroy()
 
 
@@ -214,14 +222,15 @@ def update_transition_display(transition_trace_label, reset_button, undo_button)
     formatted_trace = [str(transition)
                        for transition in globals.transition_trace]
 
+    transition_trace_label.config(state=tk.NORMAL)
+    transition_trace_label.delete("1.0", tk.END)
     if formatted_trace:
-        formatted_text = "Transition Trace: " + \
-            ", ".join(formatted_trace) + ", "
+        transition_trace_label.insert(
+            tk.END, ", ".join(formatted_trace) + ", ")
     else:
-        formatted_text = "Transition Trace: "
-
-    transition_trace_label.config(text=formatted_text)
-
+        transition_trace_label.insert(tk.END, "")
+    transition_trace_label.see(tk.END)
+    transition_trace_label.config(state=tk.DISABLED)
     reset_button["state"] = "normal" if globals.transition_trace else "disabled"
     undo_button["state"] = "normal" if globals.transition_trace else "disabled"
 

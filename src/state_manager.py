@@ -226,6 +226,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 state_changed = True
                 print(f"Transition: {globals.current_state}")
                 return state_changed
+            else:
+                return
 
         if state in allowed_transitions:
             if isinstance(allowed_transitions[state], dict):
