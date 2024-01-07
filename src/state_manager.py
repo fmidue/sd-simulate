@@ -140,10 +140,15 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
     state_changed = False
 
     def collect_all_children(state_name, hierarchy):
+        if state_name == "Outside":
+            top_level_states = set(hierarchy.keys())
+            for state, children in hierarchy.items():
+                top_level_states.difference_update(children)
+            return list(top_level_states)
+
         all_children = []
         children = hierarchy.get(state_name, [])
         for child in children:
-            print(f"CHILD TEST: {child}")
             all_children.append(child)
             all_children.extend(collect_all_children(child, hierarchy))
 
@@ -151,7 +156,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             if hierarchy.get(element):
                 all_children.remove(element)
 
-        return all_children
+        print(f"all childrens before after elements: {all_children}")
+
+        return list(set(all_children))
 
     def is_part_of_combined_state(clicked_state, allowed_transitions):
         relevant_combined_states = []
@@ -176,163 +183,210 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
     children = collect_all_children(state, STATE_HIERARCHY)
     print(f"Children : {children}")
 
-    if state != "Outside":
-        allowed_transitions = globals.transitions.get(current, {})
-        print(
-            f"Clicked State: {state}, Allowed Transitions from {current}: {allowed_transitions}"
-        )
-        combined_states = is_part_of_combined_state(state, allowed_transitions)
+    allowed_transitions = globals.transitions.get(current, {})
+    print(
+        f"Clicked State: {state}, Allowed Transitions from {current}: {allowed_transitions}"
+    )
+    combined_states = is_part_of_combined_state(state, allowed_transitions)
 
-        if combined_states:
-            chosen_transition = None
-            transition_to_combined_state_map = {}
+    if combined_states:
+        chosen_transition = None
+        transition_to_combined_state_map = {}
 
-            if len(combined_states) > 1:
-                for combined_state in combined_states:
-                    for transition_option in globals.transitions[current][
-                        combined_state
-                    ]:
-                        transition_to_combined_state_map[
-                            transition_option
-                        ] = combined_state
+        if len(combined_states) > 1:
+            for combined_state in combined_states:
+                for transition_option in globals.transitions[current][combined_state]:
+                    transition_to_combined_state_map[transition_option] = combined_state
+            chosen_transition = ask_user_for_transition(
+                transition_to_combined_state_map, parent
+            )
+        else:
+            combined_state = combined_states[0]
+            if isinstance(combined_state, list):
+                combined_state = combined_state[0]
+            if isinstance(globals.transitions[current][combined_state], dict):
                 chosen_transition = ask_user_for_transition(
-                    transition_to_combined_state_map, parent
+                    globals.transitions[current][combined_state], parent
                 )
             else:
-                combined_state = combined_states[0]
-                if isinstance(combined_state, list):
-                    combined_state = combined_state[0]
-                if isinstance(globals.transitions[current][combined_state], dict):
-                    chosen_transition = ask_user_for_transition(
-                        globals.transitions[current][combined_state], parent
-                    )
-                else:
-                    chosen_transition = globals.transitions[current][combined_state]
+                chosen_transition = globals.transitions[current][combined_state]
 
-            if chosen_transition is not None:
-                target_combined_state = transition_to_combined_state_map.get(
-                    chosen_transition, combined_state
-                )
-                globals.state_stack.append(globals.current_state.copy())
-                active_next, remembered_next = parse_state(target_combined_state)
-                if "," in active_next[0]:
-                    active_next = active_next[0].split(",")
-                globals.current_state["active"] = active_next
-                globals.current_state["remembered"] = remembered_next
-                globals.transition_trace.append(chosen_transition)
-                update_transition_display(
-                    transition_trace_label, reset_button, undo_button
-                )
-                state_changed = True
-                print(f"Transition: {globals.current_state}")
-                return state_changed
-            else:
-                return
+        if chosen_transition is not None:
+            target_combined_state = transition_to_combined_state_map.get(
+                chosen_transition, combined_state
+            )
+            globals.state_stack.append(globals.current_state.copy())
+            active_next, remembered_next = parse_state(target_combined_state)
+            if "," in active_next[0]:
+                active_next = active_next[0].split(",")
+            globals.current_state["active"] = active_next
+            globals.current_state["remembered"] = remembered_next
+            globals.transition_trace.append(chosen_transition)
+            update_transition_display(transition_trace_label, reset_button, undo_button)
+            state_changed = True
+            print(f"Transition: {globals.current_state}")
+            return state_changed
+        else:
+            return
 
-        if state in allowed_transitions:
-            if isinstance(allowed_transitions[state], dict):
-                chosen_transition = ask_user_for_transition(
-                    allowed_transitions[state], parent
-                )
-            else:
-                chosen_transition = allowed_transitions[state]
+    if state in allowed_transitions:
+        if isinstance(allowed_transitions[state], dict):
+            chosen_transition = ask_user_for_transition(
+                allowed_transitions[state], parent
+            )
+        else:
+            chosen_transition = allowed_transitions[state]
 
-            if chosen_transition is not None:
-                print(f"CASE 1 - Handling dictionary transition {state}")
-                globals.state_stack.append(globals.current_state.copy())
-                if active_clicked != active_current:
-                    state_changed = True
-                    print("STATE CHANGED")
-                globals.current_state["active"] = active_clicked
-                globals.current_state["remembered"] = remembered_clicked
-                globals.transition_trace.append(chosen_transition)
-                update_transition_display(
-                    transition_trace_label, reset_button, undo_button
-                )
-                print(f"Transition: {globals.current_state}")
-        elif state in allowed_transitions:
-            print(f"CASE 2 - Handling direct transition {active_clicked}")
+        if chosen_transition is not None:
+            print(f"CASE 1 - Handling dictionary transition {state}")
             globals.state_stack.append(globals.current_state.copy())
             if active_clicked != active_current:
                 state_changed = True
                 print("STATE CHANGED")
             globals.current_state["active"] = active_clicked
             globals.current_state["remembered"] = remembered_clicked
-            globals.transition_trace.append(allowed_transitions[state])
+            globals.transition_trace.append(chosen_transition)
             update_transition_display(transition_trace_label, reset_button, undo_button)
             print(f"Transition: {globals.current_state}")
-        elif state in STATE_HIERARCHY and children != []:
-            print(
-                f"CASE 3 - Handling transition from complex or hierarchical state: {active_current}"
-            )
-            allowed_transitions_from_children = {}
+    elif state in allowed_transitions:
+        print(f"CASE 2 - Handling direct transition {active_clicked}")
+        globals.state_stack.append(globals.current_state.copy())
+        if active_clicked != active_current:
+            state_changed = True
+            print("STATE CHANGED")
+        globals.current_state["active"] = active_clicked
+        globals.current_state["remembered"] = remembered_clicked
+        globals.transition_trace.append(allowed_transitions[state])
+        update_transition_display(transition_trace_label, reset_button, undo_button)
+        print(f"Transition: {globals.current_state}")
+    elif state in STATE_HIERARCHY and children != []:
+        print(
+            f"CASE 3 - Handling transition from complex or hierarchical state: {active_current}"
+        )
+        allowed_transitions_from_children = {}
 
-            for child in children:
-                print(f"child: {child} in children: {children}")
-                for combined_state, transitions in allowed_transitions.items():
-                    if child in combined_state.split(","):
-                        if isinstance(transitions, dict):
-                            for option, transition_label in transitions.items():
-                                allowed_transitions_from_children[
-                                    option
-                                ] = combined_state
-                        else:
-                            allowed_transitions_from_children[
-                                transitions
-                            ] = combined_state
-
-            print(
-                f"allowed_transitions_from_children: {allowed_transitions_from_children}"
-            )
-
-            if allowed_transitions_from_children:
-                print("+++++++++CASE A")
+        for child in children:
+            print(f"child: {child} in children: {children}")
+            for combined_state, transitions in allowed_transitions.items():
                 print(
-                    f"+++++++++ length of allowed_transitions_from_children: {len(allowed_transitions_from_children)}"
+                    f"combined_state: {combined_state} , transitions: {transitions} in allowed_transitions.items(): {allowed_transitions.items()}"
+                )
+                if child in combined_state.split(","):
+                    if isinstance(transitions, dict):
+                        print(f"3 - isinstance accessed")
+                        for option, transition_label in transitions.items():
+                            allowed_transitions_from_children[option] = combined_state
+                    else:
+                        allowed_transitions_from_children[transitions] = combined_state
+
+        print(f"allowed_transitions_from_children: {allowed_transitions_from_children}")
+
+        if allowed_transitions_from_children:
+            print("+++++++++CASE A")
+            print(
+                f"+++++++++ length of allowed_transitions_from_children: {len(allowed_transitions_from_children)}"
+            )
+
+            if len(allowed_transitions_from_children) == 1:
+                print("+++++++++CASE A - 1")
+                print(
+                    f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
                 )
 
-                if len(allowed_transitions_from_children) == 1:
-                    print("+++++++++CASE A - 1")
-                    print(
-                        f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
-                    )
+                chosen_transition = list(allowed_transitions_from_children.items())[0][
+                    0
+                ]
 
-                    chosen_transition = list(allowed_transitions_from_children.items())[
-                        0
-                    ][0]
-
-                else:
-                    print("+++++++++CASE A - 2")
-                    print(
-                        f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
-                    )
-                    chosen_transition = ask_user_for_transition(
-                        allowed_transitions_from_children, parent
-                    )
-
-                if chosen_transition is not None:
-                    globals.state_stack.append(globals.current_state.copy())
-                    next_state = allowed_transitions_from_children[chosen_transition]
-                    print(f"Chosen next state: {next_state}")
-                    active, new_remembered = parse_state(next_state)
-                    if active != active_current:
-                        state_changed = True
-                        print("STATE CHANGED")
-                    globals.current_state["active"] = active
-                    globals.current_state["remembered"] = new_remembered
-                    globals.transition_trace.append(chosen_transition)
-                    update_transition_display(
-                        transition_trace_label, reset_button, undo_button
-                    )
             else:
-                print("+++++++++CASE B")
-                print(f"No valid transitions found from {current} to {active_clicked}")
-                messagebox.showinfo(
-                    "Invalid Transition",
-                    f"Cannot transition from {current} to {state}",
+                print("+++++++++CASE A - 2")
+                print(
+                    f"allowed_transitions_from_children are : {allowed_transitions_from_children}"
                 )
-                print("Invalid transition. Ignoring click.")
+                chosen_transition = ask_user_for_transition(
+                    allowed_transitions_from_children, parent
+                )
+
+            if chosen_transition is not None:
+                globals.state_stack.append(globals.current_state.copy())
+                next_state = allowed_transitions_from_children[chosen_transition]
+                print(f"Chosen next state: {next_state}")
+                active, new_remembered = parse_state(next_state)
+                if active != active_current:
+                    state_changed = True
+                    print("STATE CHANGED")
+                globals.current_state["active"] = active
+                globals.current_state["remembered"] = new_remembered
+                globals.transition_trace.append(chosen_transition)
+                update_transition_display(
+                    transition_trace_label, reset_button, undo_button
+                )
         else:
+            print("+++++++++CASE B")
+            print(f"No valid transitions found from {current} to {active_clicked}")
+            messagebox.showinfo(
+                "Invalid Transition",
+                f"Cannot transition from {current} to {state}",
+            )
+            print("Invalid transition. Ignoring click.")
+    elif state == "Outside":
+        print(f"CASE 4 - Handling Click on Outside State")
+        outside_children = collect_all_children("Outside", STATE_HIERARCHY)
+
+        print(f"outside children: {outside_children}")
+
+        allowed_transitions_from_outside = {}
+
+        for top_level_state in outside_children:
+            for target_state, transitions in globals.transitions.get(
+                current, {}
+            ).items():
+                if isinstance(transitions, dict):
+                    for option, transition_label in transitions.items():
+                        allowed_transitions_from_outside[option] = target_state
+                else:
+                    allowed_transitions_from_outside[transitions] = target_state
+
+        print(f"allowed_transitions_from_outside: {allowed_transitions_from_outside}")
+
+        if allowed_transitions_from_outside:
+            print("+++++++++CASE A")
+            print(
+                f"+++++++++ length of allowed_transitions_from_outside: {len(allowed_transitions_from_outside)}"
+            )
+
+            if len(allowed_transitions_from_outside) == 1:
+                print("+++++++++CASE A - 1")
+                print(
+                    f"allowed_transitions_from_outside are : {allowed_transitions_from_outside}"
+                )
+
+                chosen_transition = list(allowed_transitions_from_outside.items())[0][0]
+
+            else:
+                print("+++++++++CASE A - 2")
+                print(
+                    f"allowed_transitions_from_outside are : {allowed_transitions_from_outside}"
+                )
+                chosen_transition = ask_user_for_transition(
+                    allowed_transitions_from_outside, parent
+                )
+
+            if chosen_transition is not None:
+                globals.state_stack.append(globals.current_state.copy())
+                next_state = allowed_transitions_from_outside[chosen_transition]
+                print(f"Chosen next state: {next_state}")
+                active, new_remembered = parse_state(next_state)
+                if active != active_current:
+                    state_changed = True
+                    print("STATE CHANGED")
+                globals.current_state["active"] = active
+                globals.current_state["remembered"] = new_remembered
+                globals.transition_trace.append(chosen_transition)
+                update_transition_display(
+                    transition_trace_label, reset_button, undo_button
+                )
+        else:
+            print("+++++++++CASE B")
             print(f"No valid transitions found from {current} to {active_clicked}")
             messagebox.showinfo(
                 "Invalid Transition",
@@ -340,7 +394,11 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             )
             print("Invalid transition. Ignoring click.")
     else:
-        messagebox.showinfo("Clicked Outside", "Please choose a valid state")
-        print("Outside")
+        print(f"No valid transitions found from {current} to {active_clicked}")
+        messagebox.showinfo(
+            "Invalid Transition",
+            f"Cannot transition from {current} to {state}",
+        )
+        print("Invalid transition. Ignoring click.")
 
     return state_changed
