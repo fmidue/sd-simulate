@@ -10,6 +10,7 @@ from config import (
     HIGHLIGHT_COLOR_HINTS,
     HIGHLIGHT_COLOR_OUTLINE,
     HIGHLIGHT_COLOR_REMEMBERED,
+    SWITCH_SIMULATION,
 )
 from state_manager import state_parameter
 from svg_parser import (

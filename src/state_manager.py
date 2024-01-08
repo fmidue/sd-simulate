@@ -268,12 +268,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
         for child in children:
             print(f"child: {child} in children: {children}")
             for combined_state, transitions in allowed_transitions.items():
-                print(
-                    f"combined_state: {combined_state} , transitions: {transitions} in allowed_transitions.items(): {allowed_transitions.items()}"
-                )
                 if child in combined_state.split(","):
                     if isinstance(transitions, dict):
-                        print(f"3 - isinstance accessed")
                         for option, transition_label in transitions.items():
                             allowed_transitions_from_children[option] = combined_state
                     else:
@@ -329,7 +325,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             )
             print("Invalid transition. Ignoring click.")
     elif state == "Outside":
-        print(f"CASE 4 - Handling Click on Outside State")
+        print("CASE 4 - Handling Click on Outside State")
         outside_children = collect_all_children("Outside", STATE_HIERARCHY)
 
         print(f"outside children: {outside_children}")

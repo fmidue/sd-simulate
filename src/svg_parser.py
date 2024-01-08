@@ -163,7 +163,7 @@ def parse_svg2(file_path):
         path_stroke_color = group_element.get("stroke")
         if path_stroke_color == end_state_color and path_stroke_color != "rgb(0,0,0)":
             print(
-                f"**********Path Stroke Color: {path_stroke_color}, equal to to end_state_color: {end_state_color}******"
+                f"********Path Stroke Color: {path_stroke_color}, equal to to end_state_color: {end_state_color}******"
             )
             path = group_element.find(".//{http://www.w3.org/2000/svg}path")
             if path is not None:
