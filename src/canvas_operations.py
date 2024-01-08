@@ -1,18 +1,17 @@
 import logging
-import cairosvg
 import tkinter as tk
 from tkinter import PhotoImage, messagebox
+
+import cairosvg
+import globals
 from config import (
     DEFAULT_SCALE_FACTOR,
-    HIGHLIGHT_COLOR_OUTLINE,
     HIGHLIGHT_COLOR_ACTIVE,
-    HIGHLIGHT_COLOR_REMEMBERED,
     HIGHLIGHT_COLOR_HINTS,
+    HIGHLIGHT_COLOR_OUTLINE,
+    HIGHLIGHT_COLOR_REMEMBERED,
 )
-from utilities import state_representation, parse_state
-import globals
 from state_manager import state_parameter
-from utilities import show_popup
 from svg_parser import (
     check_state_type1,
     check_state_type2,
@@ -20,6 +19,7 @@ from svg_parser import (
     get_elements,
     get_hierarchy,
 )
+from utilities import parse_state, show_popup, state_representation
 
 
 def render_uml_diagram(canvas):

@@ -1,43 +1,42 @@
 import atexit
 import logging
 import tkinter as tk
-from tkinter import Button, Canvas, Entry, Scrollbar, messagebox, Checkbutton, IntVar
+from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
 
 import globals
+from canvas_operations import (
+    enter_state,
+    maximize_visible_canvas,
+    on_canvas_click,
+    on_canvas_scroll,
+    render_uml_diagram,
+    show_hints,
+    zoom,
+)
 from config import (
+    APP_EXIT_MESSAGE,
     APP_TITLE,
     CANVAS_BG,
     LABEL_FONT,
-    TITLE_FONT,
+    LOGGING_CONFIG,
     SCROLLBAR_BG,
-    TRANSITION_TRACE_TITLE_BG,
+    TITLE_FONT,
     TRANSITION_TRACE_BG,
     TRANSITION_TRACE_FG,
-    APP_EXIT_MESSAGE,
-    LOGGING_CONFIG,
+    TRANSITION_TRACE_TITLE_BG,
 )
-from graph_visualization import show_state_diagram_graph
 from graph_analysis import (
     on_reachability_analysis,
     perform_longest_path_analysis,
     perform_max_transition_path_analysis,
 )
+from graph_visualization import show_state_diagram_graph
 from GUI import (
     choose_file,
     reset_trace,
     undo_last_transition,
     update_transition_display,
 )
-from canvas_operations import (
-    render_uml_diagram,
-    on_canvas_click,
-    enter_state,
-    zoom,
-    on_canvas_scroll,
-    maximize_visible_canvas,
-    show_hints,
-)
-
 
 logging.basicConfig(**LOGGING_CONFIG)
 

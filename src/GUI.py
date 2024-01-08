@@ -3,12 +3,9 @@ import xml.etree.ElementTree as ET
 from tkinter import filedialog, messagebox
 
 import globals
-from utilities import update_transition_display, get_svg_dimensions
+from canvas_operations import clear_hints, render_uml_diagram
 from config import FILE_TYPES
-from state_manager import (
-    read_transitions_from_file,
-)
-from canvas_operations import render_uml_diagram, clear_hints
+from state_manager import read_transitions_from_file
 from svg_parser import (
     get_elements,
     get_hierarchy,
@@ -16,6 +13,7 @@ from svg_parser import (
     parse_svg,
     parse_svg2,
 )
+from utilities import get_svg_dimensions, update_transition_display
 
 
 def choose_file(canvas, transition_trace_label, reset_button, undo_button):

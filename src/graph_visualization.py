@@ -1,11 +1,11 @@
 import os
-import subprocess
 import platform
-from graphviz import Digraph
+import subprocess
 
 import globals
-from utilities import clean_state_representation
 from config import STATE_DIAGRAM_GRAPH_PATH
+from graphviz import Digraph
+from utilities import clean_state_representation
 
 
 def create_state_diagram_graph():

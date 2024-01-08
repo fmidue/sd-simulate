@@ -1,9 +1,9 @@
+import re
 import tkinter as tk
 import xml.etree.ElementTree as ET
-import re
 
 import globals
-from config import RADIO_BUTTON_FONT, MAX_SCALE_DIMENSION
+from config import MAX_SCALE_DIMENSION, RADIO_BUTTON_FONT
 
 
 class TransitionDialog(tk.Toplevel):
@@ -114,16 +114,14 @@ def parse_state(state_str):
         print(f"Parts of state_str: {parts}")
 
         if parts[0] == "":
-            active = parts[1].strip("()").split(
-                ", ") if parts[1].strip("()") else []
+            active = parts[1].strip("()").split(", ") if parts[1].strip("()") else []
             remembered = (
                 parts[0].strip("()").split(", ")
                 if len(parts) > 1 and parts[0].strip("()")
                 else []
             )
         else:
-            active = parts[0].strip("()").split(
-                ", ") if parts[0].strip("()") else []
+            active = parts[0].strip("()").split(", ") if parts[0].strip("()") else []
             remembered = (
                 parts[1].strip("()").split(", ")
                 if len(parts) > 1 and parts[1].strip("()")
@@ -160,8 +158,7 @@ def svg_path_to_coords(path_str):
     current_x, current_y = 0, 0
 
     for command, data_str in commands:
-        data = list(map(float, re.findall(
-            r"[-+]?\d*\.\d+|[-+]?\d+", data_str)))
+        data = list(map(float, re.findall(r"[-+]?\d*\.\d+|[-+]?\d+", data_str)))
 
         if command in "M":
             current_x, current_y = data[0], data[1]
@@ -219,14 +216,12 @@ def get_svg_dimensions(svg_content, max_dimension=MAX_SCALE_DIMENSION):
 
 
 def update_transition_display(transition_trace_label, reset_button, undo_button):
-    formatted_trace = [str(transition)
-                       for transition in globals.transition_trace]
+    formatted_trace = [str(transition) for transition in globals.transition_trace]
 
     transition_trace_label.config(state=tk.NORMAL)
     transition_trace_label.delete("1.0", tk.END)
     if formatted_trace:
-        transition_trace_label.insert(
-            tk.END, ", ".join(formatted_trace) + ", ")
+        transition_trace_label.insert(tk.END, ", ".join(formatted_trace) + ", ")
     else:
         transition_trace_label.insert(tk.END, "")
     transition_trace_label.see(tk.END)
@@ -239,8 +234,7 @@ def show_popup(message, x, y):
     if globals.debug_mode:
         popup = tk.Toplevel()
         popup.title("Information")
-        label_coords = tk.Label(
-            popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
+        label_coords = tk.Label(popup, text=f"Clicked Coordinates (x, y): ({x}, {y})")
         label_state = tk.Label(popup, text=f"State: {message}")
         label_coords.pack()
         label_state.pack()

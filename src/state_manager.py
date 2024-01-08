@@ -1,14 +1,14 @@
 from tkinter import messagebox
 
 import globals
+from svg_parser import get_hierarchy
 from utilities import (
-    file_state_representation,
-    state_representation,
-    parse_state,
     ask_user_for_transition,
+    file_state_representation,
+    parse_state,
+    state_representation,
     update_transition_display,
 )
-from svg_parser import get_hierarchy
 
 
 def read_transitions_from_file(file_path):
