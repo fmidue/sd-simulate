@@ -390,7 +390,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             print(f"No valid transitions found from {current} to {active_clicked}")
             messagebox.showinfo(
                 "Invalid Transition",
-                f"Cannot transition from {current} to {state}",
+                f"Cannot transition from {current} to anywhere",
             )
             print("Invalid transition. Ignoring click.")
     else:
