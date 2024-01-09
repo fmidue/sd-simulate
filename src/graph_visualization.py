@@ -88,7 +88,7 @@ def display_state_diagram_graph(graph):
     if platform.system() == "Darwin":
         subprocess.run(["open", "-a", "Preview", image_path])
     elif platform.system() == "Windows":
-        os.startfile(image_path, "open")
+        subprocess.Popen(["start", "state_diagram_graph.png"], shell=True)
     elif platform.system() == "Linux":
         subprocess.run(["xdg-open", image_path])
     else:

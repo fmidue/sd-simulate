@@ -2,8 +2,8 @@
 State 1 -> State 3(State 1) : t
 State 2a -> State 3(State 2a) : t
 State 2b -> State 3(State 2b) : t
-State 3(State 1) -> State 1 : 
-State 3(State 2a) -> State 2a : 
-State 3(State 2b) -> State 2b : 
+State 3(State 1) -> State 1 :
+State 3(State 2a) -> State 2a :
+State 3(State 2b) -> State 2b :
 State 1 -> State 2a : a
 State 2a -> State 2b : b
