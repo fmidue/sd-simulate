@@ -267,8 +267,12 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
         for child in children:
             print(f"child: {child} in children: {children}")
+            combined_states = is_part_of_combined_state(child, allowed_transitions)
+            if combined_states:
+                child = combined_states[0]
+
             for combined_state, transitions in allowed_transitions.items():
-                if child in combined_state.split(","):
+                if child in combined_state.split(",") or child in combined_state:
                     if isinstance(transitions, dict):
                         for option, transition_label in transitions.items():
                             allowed_transitions_from_children[option] = combined_state
