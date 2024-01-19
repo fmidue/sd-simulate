@@ -1,0 +1,290 @@
+[*] -> Batterie leer
+Batterie leer -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+(0 h, 0 m) -> (0 h, 1 m) : after(1 min)
+(0 h, 0 m) -> Batterie leer(0 h, 0 m) : Batterie wird leer
+(0 h, 0 m) -> on(0 h, 0 m) : a
+(0 h, 0 m)(on) -> (0 h, 1 m)(on) : after(1 min)
+(0 h, 0 m)(on) -> Batterie leer(on, 0 h, 0 m) : Batterie wird leer
+(0 h, 0 m)(on) -> on(0 h, 0 m) : a
+(0 h, 0 m)(off) -> (0 h, 1 m)(off) : after(1 min)
+(0 h, 0 m)(off) -> Batterie leer(off, 0 h, 0 m) : Batterie wird leer
+(0 h, 0 m)(off) -> off(0 h, 0 m) : a
+(0 h, 1 m) -> (0 h, ... m) : after(1 min)
+(0 h, 1 m) -> Batterie leer(0 h, 1 m) : Batterie wird leer
+(0 h, 1 m) -> on(0 h, 1 m) : a
+(0 h, 1 m)(on) -> (0 h, ... m)(on) : after(1 min)
+(0 h, 1 m)(on) -> Batterie leer(on, 0 h, 1 m) : Batterie wird leer
+(0 h, 1 m)(on) -> on(0 h, 1 m) : a
+(0 h, 1 m)(off) -> (0 h, ... m)(off) : after(1 min)
+(0 h, 1 m)(off) -> Batterie leer(off, 0 h, 1 m) : Batterie wird leer
+(0 h, 1 m)(off) -> off(0 h, 1 m) : a
+(0 h, ... m) -> (0 h, 59 m) : after(1 min)
+(0 h, ... m) -> Batterie leer(0 h, ... m) : Batterie wird leer
+(0 h, ... m) -> on(0 h, ... m) : a
+(0 h, ... m)(on) -> (0 h, 59 m)(on) : after(1 min)
+(0 h, ... m)(on) -> Batterie leer(on, 0 h, ... m) : Batterie wird leer
+(0 h, ... m)(on) -> on(0 h, ... m) : a
+(0 h, ... m)(off) -> (0 h, 59 m)(off) : after(1 min)
+(0 h, ... m)(off) -> Batterie leer(off, 0 h, ... m) : Batterie wird leer
+(0 h, ... m)(off) -> off(0 h, ... m) : a
+(0 h, 59 m) -> (1 h, 0 m) : after(1 min) / h
+(0 h, 59 m) -> Batterie leer(0 h, 59 m) : Batterie wird leer
+(0 h, 59 m) -> on(0 h, 59 m) : a
+(0 h, 59 m)(on) -> (1 h, 0 m)(on) : after(1 min) / h
+(0 h, 59 m)(on) -> Batterie leer(on, 0 h, 59 m) : Batterie wird leer
+(0 h, 59 m)(on) -> on(0 h, 59 m) : a
+(0 h, 59 m)(off) -> (1 h, 0 m)(off) : after(1 min) / h
+(0 h, 59 m)(off) -> Batterie leer(off, 0 h, 59 m) : Batterie wird leer
+(0 h, 59 m)(off) -> off(0 h, 59 m) : a
+(1 h, 0 m) -> (1 h, 1 m) : after(1 min)
+(1 h, 0 m) -> Batterie leer(1 h, 0 m) : Batterie wird leer
+(1 h, 0 m) -> on(1 h, 0 m) : a
+(1 h, 0 m)(on) -> (1 h, 1 m)(on) : after(1 min)
+(1 h, 0 m)(on) -> Batterie leer(on, 1 h, 0 m) : Batterie wird leer
+(1 h, 0 m)(on) -> on(1 h, 0 m) : a
+(1 h, 0 m)(off) -> (1 h, 1 m)(off) : after(1 min)
+(1 h, 0 m)(off) -> Batterie leer(off, 1 h, 0 m) : Batterie wird leer
+(1 h, 0 m)(off) -> off(1 h, 0 m) : a
+(1 h, 1 m) -> (1 h, ... m) : after(1 min)
+(1 h, 1 m) -> Batterie leer(1 h, 1 m) : Batterie wird leer
+(1 h, 1 m) -> on(1 h, 1 m) : a
+(1 h, 1 m)(on) -> (1 h, ... m)(on) : after(1 min)
+(1 h, 1 m)(on) -> Batterie leer(on, 1 h, 1 m) : Batterie wird leer
+(1 h, 1 m)(on) -> on(1 h, 1 m) : a
+(1 h, 1 m)(off) -> (1 h, ... m)(off) : after(1 min)
+(1 h, 1 m)(off) -> Batterie leer(off, 1 h, 1 m) : Batterie wird leer
+(1 h, 1 m)(off) -> off(1 h, 1 m) : a
+(1 h, ... m) -> (1 h, 59 m) : after(1 min)
+(1 h, ... m) -> Batterie leer(1 h, ... m) : Batterie wird leer
+(1 h, ... m) -> on(1 h, ... m) : a
+(1 h, ... m)(on) -> (1 h, 59 m)(on) : after(1 min)
+(1 h, ... m)(on) -> Batterie leer(on, 1 h, ... m) : Batterie wird leer
+(1 h, ... m)(on) -> on(1 h, ... m) : a
+(1 h, ... m)(off) -> (1 h, 59 m)(off) : after(1 min)
+(1 h, ... m)(off) -> Batterie leer(off, 1 h, ... m) : Batterie wird leer
+(1 h, ... m)(off) -> off(1 h, ... m) : a
+(1 h, 59 m) -> (... h, 0 m) : after(1 min) / h
+(1 h, 59 m) -> Batterie leer(1 h, 59 m) : Batterie wird leer
+(1 h, 59 m) -> on(1 h, 59 m) : a
+(1 h, 59 m)(on) -> (... h, 0 m)(on) : after(1 min) / h
+(1 h, 59 m)(on) -> Batterie leer(on, 1 h, 59 m) : Batterie wird leer
+(1 h, 59 m)(on) -> on(1 h, 59 m) : a
+(1 h, 59 m)(off) -> (... h, 0 m)(off) : after(1 min) / h
+(1 h, 59 m)(off) -> Batterie leer(off, 1 h, 59 m) : Batterie wird leer
+(1 h, 59 m)(off) -> off(1 h, 59 m) : a
+(... h, 0 m) -> (... h, 1 m) : after(1 min)
+(... h, 0 m) -> Batterie leer(... h, 0 m) : Batterie wird leer
+(... h, 0 m) -> on(... h, 0 m) : a
+(... h, 0 m)(on) -> (... h, 1 m)(on) : after(1 min)
+(... h, 0 m)(on) -> Batterie leer(on, ... h, 0 m) : Batterie wird leer
+(... h, 0 m)(on) -> on(... h, 0 m) : a
+(... h, 0 m)(off) -> (... h, 1 m)(off) : after(1 min)
+(... h, 0 m)(off) -> Batterie leer(off, ... h, 0 m) : Batterie wird leer
+(... h, 0 m)(off) -> off(... h, 0 m) : a
+(... h, 1 m) -> (... h, ... m) : after(1 min)
+(... h, 1 m) -> Batterie leer(... h, 1 m) : Batterie wird leer
+(... h, 1 m) -> on(... h, 1 m) : a
+(... h, 1 m)(on) -> (... h, ... m)(on) : after(1 min)
+(... h, 1 m)(on) -> Batterie leer(on, ... h, 1 m) : Batterie wird leer
+(... h, 1 m)(on) -> on(... h, 1 m) : a
+(... h, 1 m)(off) -> (... h, ... m)(off) : after(1 min)
+(... h, 1 m)(off) -> Batterie leer(off, ... h, 1 m) : Batterie wird leer
+(... h, 1 m)(off) -> off(... h, 1 m) : a
+(... h, ... m) -> (... h, 59 m) : after(1 min)
+(... h, ... m) -> Batterie leer(... h, ... m) : Batterie wird leer
+(... h, ... m) -> on(... h, ... m) : a
+(... h, ... m)(on) -> (... h, 59 m)(on) : after(1 min)
+(... h, ... m)(on) -> Batterie leer(on, ... h, ... m) : Batterie wird leer
+(... h, ... m)(on) -> on(... h, ... m) : a
+(... h, ... m)(off) -> (... h, 59 m)(off) : after(1 min)
+(... h, ... m)(off) -> Batterie leer(off, ... h, ... m) : Batterie wird leer
+(... h, ... m)(off) -> off(... h, ... m) : a
+(... h, 59 m) -> (23 h, 0 m) : after(1 min) / h
+(... h, 59 m) -> Batterie leer(... h, 59 m) : Batterie wird leer
+(... h, 59 m) -> on(... h, 59 m) : a
+(... h, 59 m)(on) -> (23 h, 0 m)(on) : after(1 min) / h
+(... h, 59 m)(on) -> Batterie leer(on, ... h, 59 m) : Batterie wird leer
+(... h, 59 m)(on) -> on(... h, 59 m) : a
+(... h, 59 m)(off) -> (23 h, 0 m)(off) : after(1 min) / h
+(... h, 59 m)(off) -> Batterie leer(off, ... h, 59 m) : Batterie wird leer
+(... h, 59 m)(off) -> off(... h, 59 m) : a
+(23 h, 0 m) -> (23 h, 1 m) : after(1 min)
+(23 h, 0 m) -> Batterie leer(23 h, 0 m) : Batterie wird leer
+(23 h, 0 m) -> on(23 h, 0 m) : a
+(23 h, 0 m)(on) -> (23 h, 1 m)(on) : after(1 min)
+(23 h, 0 m)(on) -> Batterie leer(on, 23 h, 0 m) : Batterie wird leer
+(23 h, 0 m)(on) -> on(23 h, 0 m) : a
+(23 h, 0 m)(off) -> (23 h, 1 m)(off) : after(1 min)
+(23 h, 0 m)(off) -> Batterie leer(off, 23 h, 0 m) : Batterie wird leer
+(23 h, 0 m)(off) -> off(23 h, 0 m) : a
+(23 h, 1 m) -> (23 h, ... m) : after(1 min)
+(23 h, 1 m) -> Batterie leer(23 h, 1 m) : Batterie wird leer
+(23 h, 1 m) -> on(23 h, 1 m) : a
+(23 h, 1 m)(on) -> (23 h, ... m)(on) : after(1 min)
+(23 h, 1 m)(on) -> Batterie leer(on, 23 h, 1 m) : Batterie wird leer
+(23 h, 1 m)(on) -> on(23 h, 1 m) : a
+(23 h, 1 m)(off) -> (23 h, ... m)(off) : after(1 min)
+(23 h, 1 m)(off) -> Batterie leer(off, 23 h, 1 m) : Batterie wird leer
+(23 h, 1 m)(off) -> off(23 h, 1 m) : a
+(23 h, ... m) -> (23 h, 59 m) : after(1 min)
+(23 h, ... m) -> Batterie leer(23 h, ... m) : Batterie wird leer
+(23 h, ... m) -> on(23 h, ... m) : a
+(23 h, ... m)(on) -> (23 h, 59 m)(on) : after(1 min)
+(23 h, ... m)(on) -> Batterie leer(on, 23 h, ... m) : Batterie wird leer
+(23 h, ... m)(on) -> on(23 h, ... m) : a
+(23 h, ... m)(off) -> (23 h, 59 m)(off) : after(1 min)
+(23 h, ... m)(off) -> Batterie leer(off, 23 h, ... m) : Batterie wird leer
+(23 h, ... m)(off) -> off(23 h, ... m) : a
+(23 h, 59 m) -> (0 h, 0 m) : after(1 min) / h
+(23 h, 59 m) -> Batterie leer(23 h, 59 m) : Batterie wird leer
+(23 h, 59 m) -> on(23 h, 59 m) : a
+(23 h, 59 m)(on) -> (0 h, 0 m)(on) : after(1 min) / h
+(23 h, 59 m)(on) -> Batterie leer(on, 23 h, 59 m) : Batterie wird leer
+(23 h, 59 m)(on) -> on(23 h, 59 m) : a
+(23 h, 59 m)(off) -> (0 h, 0 m)(off) : after(1 min) / h
+(23 h, 59 m)(off) -> Batterie leer(off, 23 h, 59 m) : Batterie wird leer
+(23 h, 59 m)(off) -> off(23 h, 59 m) : a
+Batterie leer(0 h, 0 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(0 h, 1 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(0 h, ... m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(0 h, 59 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(1 h, 0 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(1 h, 1 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(1 h, ... m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(1 h, 59 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(... h, 0 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(... h, 1 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(... h, ... m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(... h, 59 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(23 h, 0 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(23 h, 1 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(23 h, ... m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(23 h, 59 m) -> (0 h, 0 m) : Neue Batterie wird eingesetzt
+Batterie leer(on, 0 h, 0 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 0 h, 1 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 0 h, ... m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 0 h, 59 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 1 h, 0 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 1 h, 1 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 1 h, ... m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 1 h, 59 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, ... h, 0 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, ... h, 1 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, ... h, ... m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, ... h, 59 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 23 h, 0 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 23 h, 1 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 23 h, ... m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(on, 23 h, 59 m) -> (0 h, 0 m)(on) : Neue Batterie wird eingesetzt
+Batterie leer(off, 0 h, 0 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 0 h, 1 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 0 h, ... m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 0 h, 59 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 1 h, 0 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 1 h, 1 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 1 h, ... m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 1 h, 59 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, ... h, 0 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, ... h, 1 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, ... h, ... m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, ... h, 59 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 23 h, 0 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 23 h, 1 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 23 h, ... m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+Batterie leer(off, 23 h, 59 m) -> (0 h, 0 m)(off) : Neue Batterie wird eingesetzt
+on(0 h, 0 m) -> (0 h, 0 m)(on) : a
+on(0 h, 0 m) -> Batterie leer(on, 0 h, 0 m) : Batterie wird leer
+on(0 h, 0 m) -> off(0 h, 0 m) : b
+on(0 h, 1 m) -> (0 h, 1 m)(on) : a
+on(0 h, 1 m) -> Batterie leer(on, 0 h, 1 m) : Batterie wird leer
+on(0 h, 1 m) -> off(0 h, 1 m) : b
+on(0 h, ... m) -> (0 h, ... m)(on) : a
+on(0 h, ... m) -> Batterie leer(on, 0 h, ... m) : Batterie wird leer
+on(0 h, ... m) -> off(0 h, ... m) : b
+on(0 h, 59 m) -> (0 h, 59 m)(on) : a
+on(0 h, 59 m) -> Batterie leer(on, 0 h, 59 m) : Batterie wird leer
+on(0 h, 59 m) -> off(0 h, 59 m) : b
+on(1 h, 0 m) -> (1 h, 0 m)(on) : a
+on(1 h, 0 m) -> Batterie leer(on, 1 h, 0 m) : Batterie wird leer
+on(1 h, 0 m) -> off(1 h, 0 m) : b
+on(1 h, 1 m) -> (1 h, 1 m)(on) : a
+on(1 h, 1 m) -> Batterie leer(on, 1 h, 1 m) : Batterie wird leer
+on(1 h, 1 m) -> off(1 h, 1 m) : b
+on(1 h, ... m) -> (1 h, ... m)(on) : a
+on(1 h, ... m) -> Batterie leer(on, 1 h, ... m) : Batterie wird leer
+on(1 h, ... m) -> off(1 h, ... m) : b
+on(1 h, 59 m) -> (1 h, 59 m)(on) : a
+on(1 h, 59 m) -> Batterie leer(on, 1 h, 59 m) : Batterie wird leer
+on(1 h, 59 m) -> off(1 h, 59 m) : b
+on(... h, 0 m) -> (... h, 0 m)(on) : a
+on(... h, 0 m) -> Batterie leer(on, ... h, 0 m) : Batterie wird leer
+on(... h, 0 m) -> off(... h, 0 m) : b
+on(... h, 1 m) -> (... h, 1 m)(on) : a
+on(... h, 1 m) -> Batterie leer(on, ... h, 1 m) : Batterie wird leer
+on(... h, 1 m) -> off(... h, 1 m) : b
+on(... h, ... m) -> (... h, ... m)(on) : a
+on(... h, ... m) -> Batterie leer(on, ... h, ... m) : Batterie wird leer
+on(... h, ... m) -> off(... h, ... m) : b
+on(... h, 59 m) -> (... h, 59 m)(on) : a
+on(... h, 59 m) -> Batterie leer(on, ... h, 59 m) : Batterie wird leer
+on(... h, 59 m) -> off(... h, 59 m) : b
+on(23 h, 0 m) -> (23 h, 0 m)(on) : a
+on(23 h, 0 m) -> Batterie leer(on, 23 h, 0 m) : Batterie wird leer
+on(23 h, 0 m) -> off(23 h, 0 m) : b
+on(23 h, 1 m) -> (23 h, 1 m)(on) : a
+on(23 h, 1 m) -> Batterie leer(on, 23 h, 1 m) : Batterie wird leer
+on(23 h, 1 m) -> off(23 h, 1 m) : b
+on(23 h, ... m) -> (23 h, ... m)(on) : a
+on(23 h, ... m) -> Batterie leer(on, 23 h, ... m) : Batterie wird leer
+on(23 h, ... m) -> off(23 h, ... m) : b
+on(23 h, 59 m) -> (23 h, 59 m)(on) : a
+on(23 h, 59 m) -> Batterie leer(on, 23 h, 59 m) : Batterie wird leer
+on(23 h, 59 m) -> off(23 h, 59 m) : b
+off(0 h, 0 m) -> (0 h, 0 m)(off) : a
+off(0 h, 0 m) -> Batterie leer(off, 0 h, 0 m) : Batterie wird leer
+off(0 h, 0 m) -> on(0 h, 0 m) : b
+off(0 h, 1 m) -> (0 h, 1 m)(off) : a
+off(0 h, 1 m) -> Batterie leer(off, 0 h, 1 m) : Batterie wird leer
+off(0 h, 1 m) -> on(0 h, 1 m) : b
+off(0 h, ... m) -> (0 h, ... m)(off) : a
+off(0 h, ... m) -> Batterie leer(off, 0 h, ... m) : Batterie wird leer
+off(0 h, ... m) -> on(0 h, ... m) : b
+off(0 h, 59 m) -> (0 h, 59 m)(off) : a
+off(0 h, 59 m) -> Batterie leer(off, 0 h, 59 m) : Batterie wird leer
+off(0 h, 59 m) -> on(0 h, 59 m) : b
+off(1 h, 0 m) -> (1 h, 0 m)(off) : a
+off(1 h, 0 m) -> Batterie leer(off, 1 h, 0 m) : Batterie wird leer
+off(1 h, 0 m) -> on(1 h, 0 m) : b
+off(1 h, 1 m) -> (1 h, 1 m)(off) : a
+off(1 h, 1 m) -> Batterie leer(off, 1 h, 1 m) : Batterie wird leer
+off(1 h, 1 m) -> on(1 h, 1 m) : b
+off(1 h, ... m) -> (1 h, ... m)(off) : a
+off(1 h, ... m) -> Batterie leer(off, 1 h, ... m) : Batterie wird leer
+off(1 h, ... m) -> on(1 h, ... m) : b
+off(1 h, 59 m) -> (1 h, 59 m)(off) : a
+off(1 h, 59 m) -> Batterie leer(off, 1 h, 59 m) : Batterie wird leer
+off(1 h, 59 m) -> on(1 h, 59 m) : b
+off(... h, 0 m) -> (... h, 0 m)(off) : a
+off(... h, 0 m) -> Batterie leer(off, ... h, 0 m) : Batterie wird leer
+off(... h, 0 m) -> on(... h, 0 m) : b
+off(... h, 1 m) -> (... h, 1 m)(off) : a
+off(... h, 1 m) -> Batterie leer(off, ... h, 1 m) : Batterie wird leer
+off(... h, 1 m) -> on(... h, 1 m) : b
+off(... h, ... m) -> (... h, ... m)(off) : a
+off(... h, ... m) -> Batterie leer(off, ... h, ... m) : Batterie wird leer
+off(... h, ... m) -> on(... h, ... m) : b
+off(... h, 59 m) -> (... h, 59 m)(off) : a
+off(... h, 59 m) -> Batterie leer(off, ... h, 59 m) : Batterie wird leer
+off(... h, 59 m) -> on(... h, 59 m) : b
+off(23 h, 0 m) -> (23 h, 0 m)(off) : a
+off(23 h, 0 m) -> Batterie leer(off, 23 h, 0 m) : Batterie wird leer
+off(23 h, 0 m) -> on(23 h, 0 m) : b
+off(23 h, 1 m) -> (23 h, 1 m)(off) : a
+off(23 h, 1 m) -> Batterie leer(off, 23 h, 1 m) : Batterie wird leer
+off(23 h, 1 m) -> on(23 h, 1 m) : b
+off(23 h, ... m) -> (23 h, ... m)(off) : a
+off(23 h, ... m) -> Batterie leer(off, 23 h, ... m) : Batterie wird leer
+off(23 h, ... m) -> on(23 h, ... m) : b
+off(23 h, 59 m) -> (23 h, 59 m)(off) : a
+off(23 h, 59 m) -> Batterie leer(off, 23 h, 59 m) : Batterie wird leer
+off(23 h, 59 m) -> on(23 h, 59 m) : b
