@@ -8,6 +8,7 @@ Tpng
 UML
 Verdana
 cairosvg
+doublecircle
 fontsize
 github
 graphviz
