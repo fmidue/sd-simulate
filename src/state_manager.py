@@ -156,7 +156,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
             if hierarchy.get(element):
                 all_children.remove(element)
 
-        print(f"all childrens before after elements: {all_children}")
+        print(f"all children before after elements: {all_children}")
 
         return list(set(all_children))
 
