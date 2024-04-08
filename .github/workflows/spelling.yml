@@ -58,6 +58,8 @@ jobs:
           post_comment: 0
           experimental_apply_changes_via_bot: 1
           extra_dictionaries:
+            cspell:python/src/python/python-lib.txt
+            cspell:python/src/python/python.txt
             cspell:software-terms/dict/softwareTerms.txt
             cspell:aws/aws.txt
 
