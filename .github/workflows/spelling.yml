@@ -60,6 +60,8 @@ jobs:
           extra_dictionaries:
             cspell:python/src/python/python-lib.txt
             cspell:python/src/python/python.txt
+            cspell:python/src/common/extra.txt
+            cspell:filetypes/filetypes.txt
             cspell:software-terms/dict/softwareTerms.txt
             cspell:aws/aws.txt
 
