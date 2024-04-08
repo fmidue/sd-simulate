@@ -6,12 +6,16 @@
 \b[Ll]og in to\b
 
 # acceptable duplicates
+
 # ls directory listings
 [-bcdlpsw](?:[-r][-w][-Ssx]){3}\s+\d+\s+\S+\s+\S+\s+\d+\s+
+
 # C types and repeated CSS values
 \s(center|div|inherit|long|LONG|none|normal|solid|thin|transparent|very)(?: \g{-1})+\s
+
 # go templates
 \s(\w+)\s+\g{-1}\s+\`(?:graphql|json|yaml):
+
 # javadoc / .net
 (?:[\\@](?:groupname|param)|(?:public|private)(?:\s+static|\s+readonly)*)\s+(\w+)\s+\g{-1}\s
 

@@ -16,14 +16,14 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # Full git history is needed to get a proper
           # list of changed files within `super-linter`
           fetch-depth: 0
 
       - name: Run Linter
-        uses: github/super-linter@v4
+        uses: github/super-linter@v5
         env:
           YAML_ERROR_ON_WARNING: true
           VALIDATE_JSCPD_ALL_CODEBASE: true

@@ -65,15 +65,4 @@ ignore$
 \.zip$
 ^\.github/actions/spelling/
 ^\.github/linters/
-^\Qthesis/istitle.sty\E$
-^\Qthesis/natbib.cfg\E$
-^\Qthesis/linkcolors-colored.tex\E$
-^\Qthesis/linkcolors-pdf.tex\E$
-^\Qthesis/linkcolors-print.tex\E$
-^\Qthesis/Erklaerung.tex\E$
-^\Qthesis/Abschlussarbeit.tex\E$
-^\Qthesis/pdf.tex\E$
-^\Qthesis/README.txt\E$
-^\Qthesis/literatur.bib\E$
-^\QREADME.md\E$
 ^examples/
