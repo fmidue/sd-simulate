@@ -3,6 +3,7 @@ import platform
 import subprocess
 
 import globals
+import logging
 from config import STATE_DIAGRAM_GRAPH_PATH
 from graphviz import Digraph
 from utilities import clean_state_representation
@@ -70,7 +71,7 @@ def create_state_diagram_graph():
 
 def show_state_diagram_graph():
     if not globals.transitions:
-        print("No transitions data available. Load transitions first.")
+        logging.error("No transitions data available. Load transitions first.")
         return
 
     graph = create_state_diagram_graph()
@@ -92,4 +93,4 @@ def display_state_diagram_graph(graph):
     elif platform.system() == "Linux":
         subprocess.run(["xdg-open", image_path])
     else:
-        print("Unsupported operating system.")
+        logging.error("Unsupported operating system.")

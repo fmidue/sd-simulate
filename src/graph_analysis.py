@@ -17,7 +17,6 @@ def perform_reachability_analysis(transitions, initial_state):
 
 
 def on_reachability_analysis(transitions, initial_state_key, show_results):
-    print("initial_state_key", initial_state_key)
     if initial_state_key is None:
         messagebox.showerror("Error", "Initial state not set.")
         return

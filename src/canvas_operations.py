@@ -24,29 +24,20 @@ from utilities import parse_state, show_popup, state_representation
 
 
 def render_uml_diagram(canvas):
-    print("Rendering UML diagram using existing content.")
     ELEMENTS = get_elements()
     STATE_HIERARCHY = get_hierarchy()
 
-    print("Rendering UML Diagram...")
-
-    print("Number of elements to render:", len(ELEMENTS))
-
     if not globals.svg_file_path or not ELEMENTS:
-        print("No SVG file selected or no elements to display.")
+        logging.error("No SVG file selected or no elements to display.")
         return
 
     modified_svg_content = globals.loaded_svg_content
-
-    print("Modified SVG content:", bool(modified_svg_content))
 
     target_width = globals.original_width * globals.current_scale
     target_height = globals.original_height * globals.current_scale
 
     target_width = max(target_width, globals.MIN_WIDTH)
     target_height = max(target_height, globals.MIN_HEIGHT)
-
-    print("Target dimensions (width x height):", target_width, "x", target_height)
 
     def split_states(state_list):
         states = []
@@ -61,7 +52,7 @@ def render_uml_diagram(canvas):
             or globals.current_scale * max(ELEMENTS, key=lambda item: item[1][3])[1][3]
             < globals.MIN_HEIGHT
         ):
-            print("SVG dimensions too small for rendering.")
+            logging.error("SVG dimensions too small for rendering.")
             return
 
         if globals.is_svg_updated or globals.current_scale != globals.last_scale:
@@ -72,14 +63,10 @@ def render_uml_diagram(canvas):
             )
             image = PhotoImage(data=png_data)
             globals.current_image = image
-            print("Image created for rendering:", bool(globals.current_image))
 
-            print(f"Resizing to Width: {target_width}, Height: {target_height}")
             canvas.delete("all")
-            print("Updating canvas with new image.")
             canvas.create_image(0, 0, anchor="nw", image=image)
             canvas.image = image
-            print("Canvas configured with width, height, and scroll region.")
 
             globals.is_svg_updated = False
             globals.last_scale = globals.current_scale
@@ -88,31 +75,23 @@ def render_uml_diagram(canvas):
                 canvas.delete("all")
                 canvas.create_image(0, 0, anchor="nw", image=globals.current_image)
             else:
-                print("No current image to render.")
+                logging.error("No current image to render.")
 
         if not ELEMENTS:
-            print("No elements to highlight. Only Rendering the SVG")
+            logging.error("No elements to highlight. Only Rendering the SVG")
             return
 
-        print(f"before state_representation,current_state: {globals.current_state} ")
         current = state_representation(globals.current_state)
-        print(f"after state_representation,current_state: {current} ")
         active_states, remembered_states = parse_state(current)
-        print(f"Active States: {active_states}, Remembered States: {remembered_states}")
 
         for active_state in split_states(active_states):
             active_state = active_state.strip()
             marked_states = find_active_states(active_state)
-            print(f"Marked active state: {active_state}, Coordinates: {marked_states}")
-            print("STATE_HIERARCHY Condition reached")
             for state, hierarchy in STATE_HIERARCHY.items():
                 if state == active_state or (
                     globals.show_parent_highlight and state in marked_states
                 ):
-                    print("STATE_HIERARCHY Condition :  condition passed")
-                    print(f"Highlighting active state: {active_state}")
                     for element in ELEMENTS:
-                        print(f"Element[0] (active): {element[0]}, state: {state}")
                         if element[0] == state:
                             x1, x2, y1, y2 = [
                                 int(coord * globals.current_scale)
@@ -134,13 +113,9 @@ def render_uml_diagram(canvas):
                                 outline=outline_color,
                                 width=outline_width,
                             )
-                            print(
-                                f"Highlighting active state: {state} at {x1, y1, x2, y2}"
-                            )
 
         for remembered_state in split_states(remembered_states):
             remembered_state = remembered_state.strip()
-            print(f"Highlighting remembered state: {remembered_state}")
             for element in ELEMENTS:
                 if element[0] == remembered_state:
                     x1, x2, y1, y2 = [
@@ -178,7 +153,7 @@ def on_canvas_click(
             if state_hierarchy:
                 clicked_state = state_hierarchy[-1]
         else:
-            print("Unknown XML type")
+            logging.error("Unknown XML type")
             return
 
         state_transitioned = state_parameter(
@@ -187,10 +162,9 @@ def on_canvas_click(
 
         show_popup(clicked_state, x, y)
         if state_transitioned:
-            print("_______+++++++_____+++++++______++++++++________")
             render_uml_diagram(canvas)
         else:
-            print("No need to call render_uml_diagram")
+            logging.info("No need to call render_uml_diagram")
     except Exception as e:
         logging.error("Error in on_canvas_click: %s", str(e))
 
@@ -205,11 +179,10 @@ def enter_state(
     if state_transitioned:
         render_uml_diagram(canvas)
     else:
-        print("No need to call render_uml_diagram")
+        logging.error("No need to call render_uml_diagram")
 
 
 def highlight_next_states(canvas, next_states):
-    print("Highlighting next states:", next_states)
     ELEMENTS = get_elements()
 
     current = state_representation(globals.current_state)
@@ -226,14 +199,12 @@ def highlight_next_states(canvas, next_states):
             active_states.update(individual_state.split(","))
 
     if len(split_current_states) > 1 and current not in next_states:
-        print(f"-----=-=-=-=-=-=-split current: {split_current_states}")
         active_states = active_states - split_current_states
 
     canvas.delete("hints")
 
     for state, coordinates in ELEMENTS:
         if state in active_states:
-            print(f"state as Hint: {state}")
             x1, x2, y1, y2 = [
                 int(coord * globals.current_scale) for coord in coordinates
             ]
@@ -272,7 +243,7 @@ def zoom(event, canvas):
             or new_scale * max(ELEMENTS, key=lambda item: item[1][3])[1][3]
             < globals.MIN_HEIGHT
         ):
-            print("Zoom limit reached.")
+            logging.error("Zoom limit reached.")
             return
 
         globals.current_scale = new_scale
@@ -317,15 +288,11 @@ def maximize_visible_canvas(canvas):
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
 
-    print(f"Canvas Width: {canvas_width}, Canvas Height: {canvas_height}")
-
     diagram_width = max(state[1][1] for state in ELEMENTS)
     diagram_height = max(state[1][3] for state in ELEMENTS)
 
-    print(f"Diagram Width: {diagram_width}, Diagram Height: {diagram_height}")
-
     if diagram_width <= 0 or diagram_height <= 0:
-        print("Invalid diagram dimensions.")
+        logging.error("Invalid diagram dimensions.")
         return
 
     width_zoom = max(canvas_width / diagram_width, 0.01)
@@ -353,7 +320,6 @@ def maximize_visible_canvas(canvas):
 
 
 def clear_hints(canvas):
-    print("Clearing hints")
     canvas.delete("hints")
 
 
@@ -401,11 +367,8 @@ def toggle_mode(
 
 
 def show_hints(canvas):
-    print("Show hints called")
     current_state_hints = state_representation(globals.current_state)
-    print(f"Show hints [current_state_hints]: {current_state_hints}")
     next_states = globals.transitions.get(current_state_hints, {}).keys()
-    print(f"Next states of {current_state_hints}:", next_states)
 
     clear_hints(canvas)
 
