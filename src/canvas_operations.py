@@ -78,7 +78,7 @@ def render_uml_diagram(canvas):
                 logging.error("No current image to render.")
 
         if not ELEMENTS:
-            logging.error("No elements to highlight. Only Rendering the SVG")
+            logging.info("No elements to highlight. Only Rendering the SVG")
             return
 
         current = state_representation(globals.current_state)
@@ -179,7 +179,7 @@ def enter_state(
     if state_transitioned:
         render_uml_diagram(canvas)
     else:
-        logging.error("No need to call render_uml_diagram")
+        logging.info("No need to call render_uml_diagram")
 
 
 def highlight_next_states(canvas, next_states):

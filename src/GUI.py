@@ -50,7 +50,11 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
             "_rainbow.svg", ".svg"
         )
     else:
-        logging.error("Unsupported file type.")
+        messagebox.showinfo(
+                "Invalid File Type",
+                f"No SVG file selected or no elements to display.",
+            )
+        logging.error("Unsupported file type selected.")
         return False
 
     if (
@@ -58,7 +62,11 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         or not os.path.isfile(globals.svg_rainbow_file_path)
         or not os.path.isfile(globals.transitions_file_path)
     ):
-        logging.error("You don't have all file types needed.")
+        messagebox.showinfo(
+                "Missing File Type",
+                f"You don't have all file types needed",
+            )
+        logging.error("User selection missing File Type(s)")
         return False
 
     globals.transitions_file_path = globals.transitions_file_path
