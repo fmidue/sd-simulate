@@ -3,10 +3,10 @@ import tkinter as tk
 from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
 
 import globals
-import argparse 
-parser = argparse.ArgumentParser() 
-parser.add_argument('-d','--debug', action='store_true', default=False) 
-args = parser.parse_args() 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-d','--debug', action='store_true', default=False)
+args = parser.parse_args()
 globals.debug_mode |= args.debug
 
 from canvas_operations import (
@@ -16,7 +16,7 @@ from canvas_operations import (
     on_canvas_scroll,
     render_uml_diagram,
     show_hints,
-    zoom,   
+    zoom,
 )
 from config import (
     APP_EXIT_MESSAGE,
