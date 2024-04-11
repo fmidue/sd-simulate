@@ -4,6 +4,7 @@ name: Super-Linter
 on:
   push:
     branches: [main]
+  pull_request_target:
 
 jobs:
   build:
