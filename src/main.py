@@ -1,9 +1,14 @@
-import atexit
 import logging
 import tkinter as tk
 from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
 
 import globals
+import argparse 
+parser = argparse.ArgumentParser() 
+parser.add_argument('-d','--debug', action='store_true', default=False) 
+args = parser.parse_args() 
+globals.debug_mode |= args.debug
+
 from canvas_operations import (
     enter_state,
     maximize_visible_canvas,
@@ -11,7 +16,7 @@ from canvas_operations import (
     on_canvas_scroll,
     render_uml_diagram,
     show_hints,
-    zoom,
+    zoom,   
 )
 from config import (
     APP_EXIT_MESSAGE,
@@ -39,15 +44,6 @@ from GUI import (
 )
 
 logging.basicConfig(**LOGGING_CONFIG)
-
-
-def on_exit():
-    print(APP_EXIT_MESSAGE)
-
-
-atexit.register(on_exit)
-
-debug_mode = False
 
 highlight_button = None
 reset_button = None
@@ -96,8 +92,6 @@ def run_app():
             initial_state_key = globals.initial_state_key
             globals.analysis_results_text.pack_forget()
             globals.analysis_results_visible = False
-
-            print("Initial state key after file load:", initial_state_key)
 
     def update_text_width(event):
         canvas_width = canvas.winfo_width()
@@ -177,9 +171,7 @@ def run_app():
             globals.analysis_results_text.pack(side=tk.RIGHT, fill=tk.Y)
             globals.analysis_results_visible = True
         else:
-            if new_content != globals.full_content:
-                print("nothing happens!")
-            else:
+            if new_content == globals.full_content:
                 globals.analysis_results_text.pack_forget()
                 globals.analysis_results_visible = False
         globals.full_content = new_content

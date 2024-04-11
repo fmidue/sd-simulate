@@ -90,14 +90,6 @@ def clean_state_representation(state):
 def file_state_representation(state):
     active, remembered = parse_state(state)
 
-    if active:
-        for element in active:
-            print(f"active element: {element}")
-
-    if remembered:
-        for element in remembered:
-            print(f"remembered element: {element}")
-
     active_str = ",".join(active) if active else ""
     remembered_str = ",".join(remembered) if remembered else ""
 
@@ -111,7 +103,6 @@ def parse_state(state_str):
     if "(" in state_str and ")" in state_str:
         parts = state_str.split("(")
         parts[1] = parts[1].strip(")")
-        print(f"Parts of state_str: {parts}")
 
         if parts[0] == "":
             active = parts[1].strip("()").split(", ") if parts[1].strip("()") else []
@@ -128,12 +119,9 @@ def parse_state(state_str):
                 else []
             )
 
-        print(f"Active: {active}, Remembered: {remembered}")
     else:
         active = state_str.split(", ") if "," in state_str else [state_str]
         remembered = []
-
-        print(f"Active: {active}, Remembered: {remembered}")
 
     return active, remembered
 
@@ -208,9 +196,6 @@ def get_svg_dimensions(svg_content, max_dimension=MAX_SCALE_DIMENSION):
     while width > max_dimension or height > max_dimension:
         width /= 1.5
         height /= 1.5
-        print("Reducing dimensions to fit within the maximum allowed size.")
-
-    print(f"Adjusted SVG Width: {width}, Adjusted SVG Height: {height}")
 
     return width, height
 

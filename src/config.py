@@ -28,7 +28,7 @@ SWITCH_ANALYSIS = "Switch to Analysis Mode"
 LOGGING_CONFIG = {
     "filename": "app.log",
     "level": "DEBUG",
-    "format": "%(asctime)s %(levelname)s:%(message)s",
+    "format": "%(levelname)s:%(message)s",
 }
 
 RADIO_BUTTON_FONT = ("Verdana", 9)

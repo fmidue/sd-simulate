@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from tkinter import filedialog, messagebox
 
 import globals
+import logging
 from canvas_operations import clear_hints, render_uml_diagram
 from config import FILE_TYPES
 from state_manager import read_transitions_from_file
@@ -49,7 +50,11 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
             "_rainbow.svg", ".svg"
         )
     else:
-        print("Unsupported file type.")
+        messagebox.showinfo(
+                "Invalid File Type",
+                f"No SVG file selected or no elements to display.",
+            )
+        logging.error("Unsupported file type selected.")
         return False
 
     if (
@@ -57,7 +62,11 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         or not os.path.isfile(globals.svg_rainbow_file_path)
         or not os.path.isfile(globals.transitions_file_path)
     ):
-        print("You don't have all file types needed.")
+        messagebox.showinfo(
+                "Missing File Type",
+                f"You don't have all file types needed",
+            )
+        logging.error("User selection missing File Type(s)")
         return False
 
     globals.transitions_file_path = globals.transitions_file_path
@@ -74,34 +83,25 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         globals.original_width, globals.original_height = get_svg_dimensions(
             globals.loaded_svg_content
         )
-    print("**********Loaded SVG content:", bool(globals.loaded_svg_content))
     tree = ET.parse(globals.svg_rainbow_file_path)
     root = tree.getroot()
     globals.xml_type = identify_xml_type(root)
 
     if globals.xml_type == "Type1":
-        print("Handling Type 1 XML.")
         canvas.delete("all")
         ELEMENTS, STATE_HIERARCHY = parse_svg(globals.svg_rainbow_file_path)
     elif globals.xml_type == "Type2":
-        print("Handling Type 2 XML.")
         canvas.delete("all")
         ELEMENTS, STATE_HIERARCHY = parse_svg2(globals.svg_rainbow_file_path)
     else:
-        print("Unknown file type")
+        logging.error("Unknown file type")
         return False
 
     globals.current_state, globals.transitions = read_transitions_from_file(
         globals.transitions_file_path
     )
 
-    print("Current State:", globals.current_state)
-    print("Transitions:", globals.transitions)
-
-    print("************Number of elements loaded from SVG:", len(ELEMENTS))
-
     if ELEMENTS:
-        print(f"ELEMENTS CHECK : {ELEMENTS}")
         max_x = max(state[1][1] for state in ELEMENTS)
         max_y = max(state[1][3] for state in ELEMENTS)
         canvas.config(width=max_x + 20, height=max_y + 20)
@@ -126,11 +126,7 @@ def get_modified_svg_content():
 
 
 def toggle_color_mode(canvas):
-    globals.debug_mode = not globals.debug_mode
-
     globals.loaded_svg_content = get_modified_svg_content()
-
-    print(f"Loaded SVG Content Updated: {globals.loaded_svg_content is not None}")
 
     if globals.loaded_svg_content:
         render_uml_diagram(canvas)
@@ -151,8 +147,6 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
 
     update_transition_display(transition_trace_label, reset_button, undo_button)
     render_uml_diagram(canvas)
-    print("Transition trace reset.")
-
 
 def undo_last_transition(transition_trace_label, reset_button, undo_button, canvas):
     if globals.transition_trace:
@@ -173,10 +167,9 @@ def undo_last_transition(transition_trace_label, reset_button, undo_button, canv
             clear_hints(canvas)
             globals.hints_visible = False
         else:
-            print("State stack is empty.")
             messagebox.showinfo("No Undo Available", "No further undo is possible.")
             undo_button["state"] = "disabled"
     else:
-        print("No transitions to undo.")
+        logging.error("No transitions to undo.")
         messagebox.showinfo("No Undo Available", "No further undo is possible.")
         undo_button["state"] = "disabled"

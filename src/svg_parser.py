@@ -1,4 +1,6 @@
 import xml.etree.ElementTree as ET
+import logging
+
 from typing import Dict, List
 
 from config import DEFAULT_TEXT_COLOR, SVG_NAMESPACE, XML_TYPE_1, XML_TYPE_2
@@ -61,19 +63,11 @@ def parse_svg(file_path):
                 outer_ellipse.get("ry")
             )
 
-            print(
-                f"Outer ellipse {i}: center=({outer_cx}, {outer_cy}), rx={outer_rx}, ry={outer_ry}"
-            )
-
             inner_cx, inner_cy = float(inner_ellipse.get("cx")), float(
                 inner_ellipse.get("cy")
             )
             inner_rx, inner_ry = float(inner_ellipse.get("rx")), float(
                 inner_ellipse.get("ry")
-            )
-
-            print(
-                f"Checking against inner ellipse {j}: center=({inner_cx}, {inner_cy}), rx={inner_rx}, ry={inner_ry}"
             )
 
             if (
@@ -82,9 +76,6 @@ def parse_svg(file_path):
                 and outer_cy - outer_ry <= inner_cy - inner_ry
                 and outer_cy + outer_ry >= inner_cy + inner_ry
             ):
-                print(
-                    f"Inner ellipse {j} is inside outer ellipse {i}. Marking as end state."
-                )
                 end_state_bounds = (
                     outer_cx - outer_rx,
                     outer_cx + outer_rx,
@@ -97,13 +88,7 @@ def parse_svg(file_path):
     result_list.sort(key=lambda x: (len(STATE_HIERARCHY.get(x[0], [])), x[1][0]))
     STATE_HIERARCHY.update(build_state_hierarchy(result_list))
 
-    for state, hierarchy in STATE_HIERARCHY.items():
-        print(f"State: {state}")
-        print(f"Children: {hierarchy}")
-        print()
-
     ELEMENTS = result_list
-    print(f"SVG_PARSER ELEMENT CHECK: {ELEMENTS}")
 
     return ELEMENTS, STATE_HIERARCHY
 
@@ -122,11 +107,9 @@ def parse_svg2(file_path):
 
     for group_element in group_elements:
         group_fill_color = group_element.get("fill")
-        print(f"Group Fill Color: {group_fill_color}")
         if group_fill_color != "rgb(0,0,0)":
             colored_list.append(group_fill_color)
         else:
-            print("here skipped black colored group")
             continue
 
         text_element = group_element.find(".//{http://www.w3.org/2000/svg}text")
@@ -135,10 +118,8 @@ def parse_svg2(file_path):
             if text_element.text:
                 text_list.append(text_element.text)
                 state_name = text_element.text.strip()
-            print(f"Found Text Element: {state_name}")
         else:
             end_state_color = group_fill_color
-            print("End state found, No Text Element found in group")
             continue
 
         related_path = None
@@ -146,7 +127,6 @@ def parse_svg2(file_path):
             path_stroke_color = path_element.get("stroke")
             if path_stroke_color is not None:
                 path = path_element.find(".//{http://www.w3.org/2000/svg}path")
-                print(f"Path Stroke Color: {path_stroke_color}")
                 if path_stroke_color == group_fill_color:
                     related_path = path.get("d")
 
@@ -154,31 +134,19 @@ def parse_svg2(file_path):
             coordinates = svg_path_to_coords(related_path)
             if coordinates:
                 result_list.append((state_name, coordinates))
-            print(f"Added State: {state_name}")
-            print(f"Related Path: {related_path}")
         else:
-            print(f"No matching path found for state: {state_name}")
+            logging.error(f"No matching path found for state: {state_name}")
 
     for group_element in group_elements:
         path_stroke_color = group_element.get("stroke")
         if path_stroke_color == end_state_color and path_stroke_color != "rgb(0,0,0)":
-            print(
-                f"********Path Stroke Color: {path_stroke_color}, equal to to end_state_color: {end_state_color}******"
-            )
             path = group_element.find(".//{http://www.w3.org/2000/svg}path")
             if path is not None:
                 end_state = path.get("d")
                 coordinates = svg_path_to_coords(end_state)
                 if coordinates:
                     result_list.append(("[**]", coordinates))
-                    print("Added End State")
-                    print(f"Related Path: {end_state}")
             break
-
-    for state, coordinates in result_list:
-        print(f"State: {state}")
-        print(f"Coordinates: {coordinates}")
-        print()
 
     global STATE_HIERARCHY
     STATE_HIERARCHY = build_state_hierarchy(result_list)
@@ -186,15 +154,9 @@ def parse_svg2(file_path):
     if result_list:
         max_x = max(coordinates[1] for _, coordinates in result_list)
         max_y = max(coordinates[3] for _, coordinates in result_list)
-        print(f"Max X: {max_x}")
-        print(f"Max Y: {max_y}")
-    else:
-        print("The selected SVG doesn't contain the expected elements.")
 
-    for state, hierarchy in STATE_HIERARCHY.items():
-        print(f"State: {state}")
-        print(f"Children: {hierarchy}")
-        print()
+    else:
+        logging.error("The selected SVG doesn't contain the expected elements.")
 
     ELEMENTS = result_list
 
@@ -222,15 +184,11 @@ def build_state_hierarchy(states):
 
 
 def check_state_type1(x, y):
-    # print(f"Checking state for x={x}, y={y}")
 
     for element in reversed(ELEMENTS):
         x1, x2, y1, y2 = element[1]
-        # print(f"Checking against x1={x1}, x2={x2}, y1={y1}, y2={y2}")
         if x1 <= x <= x2 and y1 <= y <= y2:
-            print(f"Matched with {element[0]}")
             return element[0]
-    print("Outside")
     return "Outside"
 
 
@@ -267,7 +225,6 @@ def find_active_states(state, visited=None):
 
     for parent_state, child_states in STATE_HIERARCHY.items():
         if state in child_states:
-            print(f"Marked state: {parent_state}")
             marked_states.add(parent_state)
             marked_states.update(find_active_states(parent_state, visited))
 
