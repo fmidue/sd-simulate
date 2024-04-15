@@ -298,14 +298,14 @@ def maximize_visible_canvas(canvas):
     width_zoom = max(canvas_width / diagram_width, 0.01)
     height_zoom = max(canvas_height / diagram_height, 0.01)
 
-    proposed_scale = min(width_zoom, height_zoom)
+    proposed_scale = min(width_zoom*0.95, height_zoom*0.9)
 
     if (diagram_width * proposed_scale < globals.MIN_WIDTH) or (
         diagram_height * proposed_scale < globals.MIN_HEIGHT
     ):
         min_width_scale = globals.MIN_WIDTH / diagram_width
         min_height_scale = globals.MIN_HEIGHT / diagram_height
-        globals.current_scale = max(min_width_scale, min_height_scale)
+        globals.current_scale = max(min_width_scale*0.95, min_height_scale*0.9)
     else:
         globals.current_scale = proposed_scale
 

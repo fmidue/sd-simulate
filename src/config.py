@@ -10,6 +10,7 @@ HIGHLIGHT_COLOR_OUTLINE = "red"
 SWITCH_SIMULATION = "Switch to Simulation Mode"
 FILE_TYPES = [("SVG files", "*.svg"), ("Text files", "*.txt")]
 STATE_DIAGRAM_GRAPH_PATH = "state_diagram_graph.dot"
+DEFAULT_WINDOW_SIZE = "1280x720"
 DEFAULT_SCALE_FACTOR = 1.1
 DEFAULT_SCALE = 1.0
 MAX_SCALE_DIMENSION = 10000

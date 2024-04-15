@@ -29,6 +29,7 @@ from config import (
     TRANSITION_TRACE_BG,
     TRANSITION_TRACE_FG,
     TRANSITION_TRACE_TITLE_BG,
+    DEFAULT_WINDOW_SIZE,
 )
 from graph_analysis import (
     on_reachability_analysis,
@@ -59,6 +60,7 @@ def run_app():
     global app, transition_trace_label
     app = tk.Tk()
     app.title(APP_TITLE)
+    app.geometry(DEFAULT_WINDOW_SIZE)
 
     trace_frame = tk.Frame(app)
     trace_frame.pack(side=tk.BOTTOM, fill=tk.X)
