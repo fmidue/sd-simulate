@@ -28,8 +28,7 @@ def read_transitions_from_file(file_path):
         else:
             counter = transition_counter.get((source_key, dest_key), 1) + 1
             transition_counter[(source_key, dest_key)] = counter
-            option_label = f"Option {counter}"
-            globals.transitions[source_key][dest_key][label] = option_label
+            globals.transitions[source_key][dest_key][label] = f"Option {counter}"
 
     with open(file_path, "r") as file:
         for line in file.readlines():
@@ -151,8 +150,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     relevant_combined_states.append(transition_state)
         return relevant_combined_states
 
-    current = globals.current_state
-
     current = state_representation(globals.current_state)
 
     active_clicked, remembered_clicked = parse_state(state)
@@ -272,7 +269,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 "Invalid Transition",
                 f"Cannot transition from {current} to (within) {state}",
             )
-            logging.error("Invalid transition. Ignoring click.")
     elif state == "Outside":
         outside_children = collect_all_children("Outside", STATE_HIERARCHY)
 
@@ -316,13 +312,11 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                 "Invalid Transition",
                 f"Cannot transition from {current} to anywhere (outside)",
             )
-            logging.error("Invalid transition. Ignoring click.")
     else:
         logging.error(f"No valid transitions found from {current} to {active_clicked}")
         messagebox.showinfo(
             "Invalid Transition",
             f"Cannot transition from {current} to (within) {state}",
         )
-        logging.error("Invalid transition. Ignoring click.")
 
     return state_changed

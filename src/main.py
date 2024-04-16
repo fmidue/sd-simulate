@@ -95,7 +95,7 @@ def run_app():
             globals.analysis_results_text.pack_forget()
             globals.analysis_results_visible = False
 
-    def update_text_width(event):
+    def update_text_width():
         canvas_width = canvas.winfo_width()
         chars_per_pixel = 0.13
         text_width_in_chars = int(canvas_width * chars_per_pixel)
@@ -312,7 +312,6 @@ def run_app():
     )
 
     def on_close():
-        """Function to handle the window close event."""
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             logging.info(APP_EXIT_MESSAGE)
             app.quit()

@@ -151,11 +151,7 @@ def parse_svg2(file_path):
     global STATE_HIERARCHY
     STATE_HIERARCHY = build_state_hierarchy(result_list)
 
-    if result_list:
-        max_x = max(coordinates[1] for _, coordinates in result_list)
-        max_y = max(coordinates[3] for _, coordinates in result_list)
-
-    else:
+    if not result_list:
         logging.error("The selected SVG doesn't contain the expected elements.")
 
     ELEMENTS = result_list

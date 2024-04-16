@@ -2,9 +2,7 @@ from typing import Dict, List
 
 current_scale = 1.0
 last_scale = None
-last_svg_content_hash = None
 debug_mode = False
-analysis_mode = False
 xml_type = None
 loaded_svg_content = None
 MIN_WIDTH = 1
