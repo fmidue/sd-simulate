@@ -14,7 +14,6 @@ DEFAULT_SCALE_FACTOR = 1.1
 DEFAULT_SCALE = 1.0
 MAX_SCALE_DIMENSION = 10000
 
-
 APP_TITLE = "UML Diagram Viewer"
 APP_EXIT_MESSAGE = "Application is exiting..."
 CANVAS_BG = "white"
@@ -24,10 +23,5 @@ SCROLLBAR_BG = "gray"
 TRANSITION_TRACE_TITLE_BG = "lightgray"
 TRANSITION_TRACE_BG = "#f0f0f0"
 TRANSITION_TRACE_FG = "black"
-LOGGING_CONFIG = {
-    "filename": "app.log",
-    "level": "DEBUG",
-    "format": "%(levelname)s:%(message)s",
-}
 
 RADIO_BUTTON_FONT = ("Verdana", 9)

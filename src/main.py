@@ -1,14 +1,9 @@
 import logging
-import tkinter as tk
-from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
-
 import globals
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('-d','--debug', action='store_true', default=False)
-args = parser.parse_args()
-globals.debug_mode |= args.debug
+import tkinter as tk
 
+from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
 from canvas_operations import (
     enter_state,
     maximize_visible_canvas,
@@ -23,7 +18,6 @@ from config import (
     APP_TITLE,
     CANVAS_BG,
     LABEL_FONT,
-    LOGGING_CONFIG,
     SCROLLBAR_BG,
     TITLE_FONT,
     TRANSITION_TRACE_BG,
@@ -44,7 +38,14 @@ from GUI import (
     update_transition_display,
 )
 
-logging.basicConfig(**LOGGING_CONFIG)
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--debug", action="store_true", default=False)
+args = parser.parse_args()
+globals.debug_mode |= args.debug
+
+logging.basicConfig(
+    filename="app.log", level="DEBUG", format="%(levelname)s:%(message)s"
+)
 
 highlight_button = None
 reset_button = None
@@ -291,7 +292,7 @@ def run_app():
     canvas_frame.grid_rowconfigure(0, weight=1)
     canvas_frame.grid_columnconfigure(0, weight=1)
 
-    canvas.bind("<Configure>", update_text_width)
+    canvas.bind("<Configure>", update_text_width())
     canvas.bind("<Control-MouseWheel>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-4>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-5>", lambda event: zoom(event, canvas))

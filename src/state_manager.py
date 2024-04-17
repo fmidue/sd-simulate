@@ -1,7 +1,7 @@
-from tkinter import messagebox
-
-import globals
 import logging
+import globals
+
+from tkinter import messagebox
 from svg_parser import get_hierarchy
 from utilities import (
     ask_user_for_transition,
@@ -264,7 +264,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     transition_trace_label, reset_button, undo_button
                 )
         else:
-            logging.error(f"No valid transitions found from {current} to {active_clicked}")
+            logging.error(
+                f"No valid transitions found from {current} to {active_clicked}"
+            )
             messagebox.showinfo(
                 "Invalid Transition",
                 f"Cannot transition from {current} to (within) {state}",
@@ -307,7 +309,9 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     transition_trace_label, reset_button, undo_button
                 )
         else:
-            logging.error(f"No valid transitions found from {current} to {active_clicked}")
+            logging.error(
+                f"No valid transitions found from {current} to {active_clicked}"
+            )
             messagebox.showinfo(
                 "Invalid Transition",
                 f"Cannot transition from {current} to anywhere (outside)",

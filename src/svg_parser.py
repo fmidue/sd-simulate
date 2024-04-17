@@ -1,8 +1,7 @@
-import xml.etree.ElementTree as ET
 import logging
+import xml.etree.ElementTree as ET
 
 from typing import Dict, List
-
 from config import DEFAULT_TEXT_COLOR, SVG_NAMESPACE, XML_TYPE_1, XML_TYPE_2
 from utilities import svg_path_to_coords
 

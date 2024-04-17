@@ -1,9 +1,9 @@
+import logging
 import os
 import platform
 import subprocess
-
 import globals
-import logging
+
 from config import STATE_DIAGRAM_GRAPH_PATH
 from graphviz import Digraph
 from utilities import clean_state_representation

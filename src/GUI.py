@@ -1,9 +1,9 @@
-import os
-import xml.etree.ElementTree as ET
-from tkinter import filedialog, messagebox
-
-import globals
 import logging
+import os
+import globals
+import xml.etree.ElementTree as ET
+
+from tkinter import filedialog, messagebox
 from canvas_operations import clear_hints, render_uml_diagram
 from config import FILE_TYPES
 from state_manager import read_transitions_from_file
@@ -51,9 +51,9 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         )
     else:
         messagebox.showinfo(
-                "Invalid File Type",
-                f"No SVG file selected or no elements to display.",
-            )
+            "Invalid File Type",
+            "No SVG file selected or no elements to display.",
+        )
         logging.error("Unsupported file type selected.")
         return False
 
@@ -63,9 +63,9 @@ def choose_file(canvas, transition_trace_label, reset_button, undo_button):
         or not os.path.isfile(globals.transitions_file_path)
     ):
         messagebox.showinfo(
-                "Missing File Type",
-                f"You don't have all file types needed",
-            )
+            "Missing File Type",
+            "You don't have all file types needed",
+        )
         logging.error("User selection missing File Type(s)")
         return False
 
@@ -147,6 +147,7 @@ def reset_trace(transition_trace_label, reset_button, undo_button, canvas):
 
     update_transition_display(transition_trace_label, reset_button, undo_button)
     render_uml_diagram(canvas)
+
 
 def undo_last_transition(transition_trace_label, reset_button, undo_button, canvas):
     if globals.transition_trace:
