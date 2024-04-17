@@ -1,9 +1,9 @@
+import logging
 import os
 import platform
 import subprocess
 
 import globals
-import logging
 from config import STATE_DIAGRAM_GRAPH_PATH
 from graphviz import Digraph
 from utilities import clean_state_representation
@@ -89,7 +89,7 @@ def display_state_diagram_graph(graph):
     if platform.system() == "Darwin":
         subprocess.run(["open", "-a", "Preview", image_path])
     elif platform.system() == "Windows":
-        subprocess.Popen(["start", image_path], shell=True)
+        os.startfile(image_path)
     elif platform.system() == "Linux":
         subprocess.run(["xdg-open", image_path])
     else:

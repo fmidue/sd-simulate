@@ -1,5 +1,4 @@
 import logging
-import tkinter as tk
 from tkinter import PhotoImage, messagebox
 
 import cairosvg
@@ -10,7 +9,6 @@ from config import (
     HIGHLIGHT_COLOR_HINTS,
     HIGHLIGHT_COLOR_OUTLINE,
     HIGHLIGHT_COLOR_REMEMBERED,
-    SWITCH_SIMULATION,
 )
 from state_manager import state_parameter
 from svg_parser import (
@@ -298,14 +296,14 @@ def maximize_visible_canvas(canvas):
     width_zoom = max(canvas_width / diagram_width, 0.01)
     height_zoom = max(canvas_height / diagram_height, 0.01)
 
-    proposed_scale = min(width_zoom, height_zoom)
+    proposed_scale = min(width_zoom * 0.95, height_zoom * 0.9)
 
     if (diagram_width * proposed_scale < globals.MIN_WIDTH) or (
         diagram_height * proposed_scale < globals.MIN_HEIGHT
     ):
         min_width_scale = globals.MIN_WIDTH / diagram_width
         min_height_scale = globals.MIN_HEIGHT / diagram_height
-        globals.current_scale = max(min_width_scale, min_height_scale)
+        globals.current_scale = max(min_width_scale * 0.95, min_height_scale * 0.9)
     else:
         globals.current_scale = proposed_scale
 
@@ -321,49 +319,6 @@ def maximize_visible_canvas(canvas):
 
 def clear_hints(canvas):
     canvas.delete("hints")
-
-
-def toggle_mode(
-    canvas,
-    mode_switch,
-    highlight_button,
-    state_name_entry,
-    button_show_graph,
-    hint_button,
-    reset_button,
-    undo_button,
-    reachability_button,
-    analyze_button2,
-    analyze_button3,
-):
-    globals.analysis_mode = not globals.analysis_mode
-    if globals.analysis_mode:
-        mode_switch.config(text=SWITCH_SIMULATION)
-        state_name_entry.pack_forget()
-        highlight_button.pack_forget()
-        hint_button.pack_forget()
-        reset_button.pack_forget()
-        undo_button.pack_forget()
-        button_show_graph.pack_forget()
-
-        analyze_button3.pack(side=tk.LEFT, padx=(5, 5))
-        analyze_button2.pack(side=tk.LEFT, padx=(5, 5))
-        reachability_button.pack(side=tk.LEFT, padx=(5, 5))
-
-    else:
-        mode_switch.config(text="Switch to Analysis Mode")
-        state_name_entry.pack(side=tk.LEFT, padx=(0, 5))
-        highlight_button.pack(side=tk.LEFT, padx=(0, 5))
-        hint_button.pack(side=tk.LEFT, padx=(5, 5))
-        reset_button.pack(side=tk.LEFT, padx=(5, 5))
-        undo_button.pack(side=tk.LEFT, padx=(5, 5))
-        button_show_graph.pack(side=tk.LEFT, padx=(0, 25))
-
-        analyze_button3.pack_forget()
-        analyze_button2.pack_forget()
-        reachability_button.pack_forget()
-
-    canvas.update_idletasks()
 
 
 def show_hints(canvas):

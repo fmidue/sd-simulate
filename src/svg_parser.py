@@ -1,6 +1,5 @@
-import xml.etree.ElementTree as ET
 import logging
-
+import xml.etree.ElementTree as ET
 from typing import Dict, List
 
 from config import DEFAULT_TEXT_COLOR, SVG_NAMESPACE, XML_TYPE_1, XML_TYPE_2
@@ -151,11 +150,7 @@ def parse_svg2(file_path):
     global STATE_HIERARCHY
     STATE_HIERARCHY = build_state_hierarchy(result_list)
 
-    if result_list:
-        max_x = max(coordinates[1] for _, coordinates in result_list)
-        max_y = max(coordinates[3] for _, coordinates in result_list)
-
-    else:
+    if not result_list:
         logging.error("The selected SVG doesn't contain the expected elements.")
 
     ELEMENTS = result_list
@@ -184,7 +179,6 @@ def build_state_hierarchy(states):
 
 
 def check_state_type1(x, y):
-
     for element in reversed(ELEMENTS):
         x1, x2, y1, y2 = element[1]
         if x1 <= x <= x2 and y1 <= y <= y2:

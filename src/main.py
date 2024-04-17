@@ -1,14 +1,9 @@
+import argparse
 import logging
 import tkinter as tk
 from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
 
 import globals
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('-d','--debug', action='store_true', default=False)
-args = parser.parse_args()
-globals.debug_mode |= args.debug
-
 from canvas_operations import (
     enter_state,
     maximize_visible_canvas,
@@ -22,8 +17,8 @@ from config import (
     APP_EXIT_MESSAGE,
     APP_TITLE,
     CANVAS_BG,
+    DEFAULT_WINDOW_SIZE,
     LABEL_FONT,
-    LOGGING_CONFIG,
     SCROLLBAR_BG,
     TITLE_FONT,
     TRANSITION_TRACE_BG,
@@ -43,7 +38,14 @@ from GUI import (
     update_transition_display,
 )
 
-logging.basicConfig(**LOGGING_CONFIG)
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--debug", action="store_true", default=False)
+args = parser.parse_args()
+globals.debug_mode |= args.debug
+
+logging.basicConfig(
+    filename="app.log", level="DEBUG", format="%(levelname)s:%(message)s"
+)
 
 highlight_button = None
 reset_button = None
@@ -59,6 +61,7 @@ def run_app():
     global app, transition_trace_label
     app = tk.Tk()
     app.title(APP_TITLE)
+    app.geometry(DEFAULT_WINDOW_SIZE)
 
     trace_frame = tk.Frame(app)
     trace_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -93,7 +96,7 @@ def run_app():
             globals.analysis_results_text.pack_forget()
             globals.analysis_results_visible = False
 
-    def update_text_width(event):
+    def update_text_width():
         canvas_width = canvas.winfo_width()
         chars_per_pixel = 0.13
         text_width_in_chars = int(canvas_width * chars_per_pixel)
@@ -289,7 +292,7 @@ def run_app():
     canvas_frame.grid_rowconfigure(0, weight=1)
     canvas_frame.grid_columnconfigure(0, weight=1)
 
-    canvas.bind("<Configure>", update_text_width)
+    canvas.bind("<Configure>", update_text_width())
     canvas.bind("<Control-MouseWheel>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-4>", lambda event: zoom(event, canvas))
     canvas.bind("<Control-Button-5>", lambda event: zoom(event, canvas))
@@ -310,7 +313,6 @@ def run_app():
     )
 
     def on_close():
-        """Function to handle the window close event."""
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             logging.info(APP_EXIT_MESSAGE)
             app.quit()

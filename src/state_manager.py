@@ -1,7 +1,7 @@
+import logging
 from tkinter import messagebox
 
 import globals
-import logging
 from svg_parser import get_hierarchy
 from utilities import (
     ask_user_for_transition,
@@ -28,8 +28,7 @@ def read_transitions_from_file(file_path):
         else:
             counter = transition_counter.get((source_key, dest_key), 1) + 1
             transition_counter[(source_key, dest_key)] = counter
-            option_label = f"Option {counter}"
-            globals.transitions[source_key][dest_key][label] = option_label
+            globals.transitions[source_key][dest_key][label] = f"Option {counter}"
 
     with open(file_path, "r") as file:
         for line in file.readlines():
@@ -53,7 +52,6 @@ def read_transitions_from_file(file_path):
 
 
 def state_parameter(state, transition_trace_label, reset_button, undo_button, parent):
-
     current_active_formatted = ",".join(globals.current_state["active"])
     current_remembered_formatted = (
         ",".join(globals.current_state["remembered"])
@@ -151,8 +149,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     relevant_combined_states.append(transition_state)
         return relevant_combined_states
 
-    current = globals.current_state
-
     current = state_representation(globals.current_state)
 
     active_clicked, remembered_clicked = parse_state(state)
@@ -243,7 +239,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                         allowed_transitions_from_children[transitions] = child
 
         if allowed_transitions_from_children:
-
             if len(allowed_transitions_from_children) == 1:
                 chosen_transition = list(allowed_transitions_from_children.items())[0][
                     0
@@ -267,12 +262,13 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     transition_trace_label, reset_button, undo_button
                 )
         else:
-            logging.error(f"No valid transitions found from {current} to {active_clicked}")
+            logging.error(
+                f"No valid transitions found from {current} to {active_clicked}"
+            )
             messagebox.showinfo(
                 "Invalid Transition",
                 f"Cannot transition from {current} to (within) {state}",
             )
-            logging.error("Invalid transition. Ignoring click.")
     elif state == "Outside":
         outside_children = collect_all_children("Outside", STATE_HIERARCHY)
 
@@ -289,7 +285,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     allowed_transitions_from_outside[transitions] = target_state
 
         if allowed_transitions_from_outside:
-
             if len(allowed_transitions_from_outside) == 1:
                 chosen_transition = list(allowed_transitions_from_outside.items())[0][0]
 
@@ -311,18 +306,18 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     transition_trace_label, reset_button, undo_button
                 )
         else:
-            logging.error(f"No valid transitions found from {current} to {active_clicked}")
+            logging.error(
+                f"No valid transitions found from {current} to {active_clicked}"
+            )
             messagebox.showinfo(
                 "Invalid Transition",
                 f"Cannot transition from {current} to anywhere (outside)",
             )
-            logging.error("Invalid transition. Ignoring click.")
     else:
         logging.error(f"No valid transitions found from {current} to {active_clicked}")
         messagebox.showinfo(
             "Invalid Transition",
             f"Cannot transition from {current} to (within) {state}",
         )
-        logging.error("Invalid transition. Ignoring click.")
 
     return state_changed
