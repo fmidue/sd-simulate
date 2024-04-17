@@ -2,7 +2,6 @@ import logging
 from tkinter import PhotoImage, messagebox
 
 import cairosvg
-
 import globals
 from config import (
     DEFAULT_SCALE_FACTOR,

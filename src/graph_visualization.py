@@ -3,10 +3,9 @@ import os
 import platform
 import subprocess
 
-from graphviz import Digraph
-
 import globals
 from config import STATE_DIAGRAM_GRAPH_PATH
+from graphviz import Digraph
 from utilities import clean_state_representation
 
 
