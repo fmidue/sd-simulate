@@ -28,5 +28,4 @@ jobs:
         env:
           YAML_ERROR_ON_WARNING: true
           VALIDATE_JSCPD_ALL_CODEBASE: true
-          PYTHON_PYLINT_CONFIG_FILE: .github/linters/.python-lint
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
