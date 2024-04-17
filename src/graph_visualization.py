@@ -2,10 +2,11 @@ import logging
 import os
 import platform
 import subprocess
-import globals
 
-from config import STATE_DIAGRAM_GRAPH_PATH
 from graphviz import Digraph
+
+import globals
+from config import STATE_DIAGRAM_GRAPH_PATH
 from utilities import clean_state_representation
 
 

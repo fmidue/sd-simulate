@@ -1,9 +1,9 @@
 import logging
 import os
-import globals
 import xml.etree.ElementTree as ET
-
 from tkinter import filedialog, messagebox
+
+import globals
 from canvas_operations import clear_hints, render_uml_diagram
 from config import FILE_TYPES
 from state_manager import read_transitions_from_file

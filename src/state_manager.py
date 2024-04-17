@@ -1,7 +1,7 @@
 import logging
-import globals
-
 from tkinter import messagebox
+
+import globals
 from svg_parser import get_hierarchy
 from utilities import (
     ask_user_for_transition,
@@ -52,7 +52,6 @@ def read_transitions_from_file(file_path):
 
 
 def state_parameter(state, transition_trace_label, reset_button, undo_button, parent):
-
     current_active_formatted = ",".join(globals.current_state["active"])
     current_remembered_formatted = (
         ",".join(globals.current_state["remembered"])
@@ -240,7 +239,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                         allowed_transitions_from_children[transitions] = child
 
         if allowed_transitions_from_children:
-
             if len(allowed_transitions_from_children) == 1:
                 chosen_transition = list(allowed_transitions_from_children.items())[0][
                     0
@@ -287,7 +285,6 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     allowed_transitions_from_outside[transitions] = target_state
 
         if allowed_transitions_from_outside:
-
             if len(allowed_transitions_from_outside) == 1:
                 chosen_transition = list(allowed_transitions_from_outside.items())[0][0]
 

@@ -1,9 +1,9 @@
-import logging
-import globals
 import argparse
+import logging
 import tkinter as tk
-
 from tkinter import Button, Canvas, Checkbutton, Entry, IntVar, Scrollbar, messagebox
+
+import globals
 from canvas_operations import (
     enter_state,
     maximize_visible_canvas,
@@ -17,13 +17,13 @@ from config import (
     APP_EXIT_MESSAGE,
     APP_TITLE,
     CANVAS_BG,
+    DEFAULT_WINDOW_SIZE,
     LABEL_FONT,
     SCROLLBAR_BG,
     TITLE_FONT,
     TRANSITION_TRACE_BG,
     TRANSITION_TRACE_FG,
     TRANSITION_TRACE_TITLE_BG,
-    DEFAULT_WINDOW_SIZE,
 )
 from graph_analysis import (
     on_reachability_analysis,

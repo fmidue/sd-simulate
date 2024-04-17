@@ -1,8 +1,9 @@
 import logging
-import globals
+from tkinter import PhotoImage, messagebox
+
 import cairosvg
 
-from tkinter import PhotoImage, messagebox
+import globals
 from config import (
     DEFAULT_SCALE_FACTOR,
     HIGHLIGHT_COLOR_ACTIVE,

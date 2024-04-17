@@ -1,8 +1,8 @@
 import re
 import tkinter as tk
 import xml.etree.ElementTree as ET
-import globals
 
+import globals
 from config import MAX_SCALE_DIMENSION, RADIO_BUTTON_FONT
 
 
