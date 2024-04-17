@@ -1,0 +1,36 @@
+// UML State Diagram
+digraph {
+	start [label="" fillcolor=black height=.15 shape=circle style=filled width=.15]
+	start -> Standby
+	Standby
+	"Current Time,Radio"
+	Standby -> "Current Time,Radio" [label=on]
+	"Alarm,Radio"
+	"Current Time,Radio" -> "Alarm,Radio" [label=toAlarm]
+	"Current Time,Radio" -> "Current Time,Radio" [label=x]
+	"Alarm,CD"
+	"Current Time,Radio" -> "Alarm,CD" [label=y]
+	"Current Time,CD"
+	"Current Time,Radio" -> "Current Time,CD" [label=toCD]
+	"Standby(Current Time,Radio)"
+	"Current Time,Radio" -> "Standby(Current Time,Radio)" [label=off]
+	"**" [fillcolor=black fontsize=2 height=0.015 shape=doublecircle style=filled width=0.015]
+	"Current Time,Radio" -> "**" [label=exit]
+	"Alarm,Radio" -> "Current Time,Radio" [label=toTime]
+	"Alarm,Radio" -> "Alarm,CD" [label=toCD]
+	"Standby(Alarm,Radio)"
+	"Alarm,Radio" -> "Standby(Alarm,Radio)" [label=off]
+	"Alarm,Radio" -> "**" [label=exit]
+	"Current Time,CD" -> "Alarm,CD" [label=toAlarm]
+	"Current Time,CD" -> "Current Time,Radio" [label=toRadio]
+	"Standby(Current Time,CD)"
+	"Current Time,CD" -> "Standby(Current Time,CD)" [label=off]
+	"Alarm,CD" -> "Current Time,CD" [label=toTime]
+	"Alarm,CD" -> "Alarm,Radio" [label=toRadio]
+	"Standby(Alarm,CD)"
+	"Alarm,CD" -> "Standby(Alarm,CD)" [label=off]
+	"Standby(Current Time,Radio)" -> "Current Time,Radio" [label=on]
+	"Standby(Alarm,Radio)" -> "Alarm,Radio" [label=on]
+	"Standby(Alarm,CD)" -> "Alarm,CD" [label=on]
+	"Standby(Current Time,CD)" -> "Current Time,CD" [label=on]
+}
