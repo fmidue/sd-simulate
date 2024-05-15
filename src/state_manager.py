@@ -114,6 +114,31 @@ def state_parameter(state, transition_trace_label, reset_button, undo_button, pa
 
     return state_transitioned
 
+def state_select(state_condition,active_current,transition_trace_label, reset_button, undo_button, parent):
+    state_changed = False
+
+    if len(state_condition) == 1:
+                chosen_transition = list(state_condition.items())[0][0]
+
+    else:
+        chosen_transition = ask_user_for_transition(
+            state_condition, parent
+        )
+
+    if chosen_transition is not None:
+        globals.state_stack.append(globals.current_state.copy())
+        next_state = state_condition[chosen_transition]
+        active, new_remembered = parse_state(next_state)
+        if active != active_current:
+            state_changed = True
+        globals.current_state["active"] = active
+        globals.current_state["remembered"] = new_remembered
+        globals.transition_trace.append(chosen_transition)
+        update_transition_display(
+            transition_trace_label, reset_button, undo_button
+        )
+    return state_changed
+
 
 def state_handling(state, transition_trace_label, reset_button, undo_button, parent):
     STATE_HIERARCHY = get_hierarchy()
@@ -239,36 +264,8 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                         allowed_transitions_from_children[transitions] = child
 
         if allowed_transitions_from_children:
-            if len(allowed_transitions_from_children) == 1:
-                chosen_transition = list(allowed_transitions_from_children.items())[0][
-                    0
-                ]
+            state_changed = state_select(allowed_transitions_from_outside,active_current,transition_trace_label, reset_button, undo_button, parent)
 
-            else:
-                chosen_transition = ask_user_for_transition(
-                    allowed_transitions_from_children, parent
-                )
-
-            if chosen_transition is not None:
-                globals.state_stack.append(globals.current_state.copy())
-                next_state = allowed_transitions_from_children[chosen_transition]
-                active, new_remembered = parse_state(next_state)
-                if active != active_current:
-                    state_changed = True
-                globals.current_state["active"] = active
-                globals.current_state["remembered"] = new_remembered
-                globals.transition_trace.append(chosen_transition)
-                update_transition_display(
-                    transition_trace_label, reset_button, undo_button
-                )
-        else:
-            logging.error(
-                f"No valid transitions found from {current} to {active_clicked}"
-            )
-            messagebox.showinfo(
-                "Invalid Transition",
-                f"Cannot transition from {current} to (within) {state}",
-            )
     elif state == "Outside":
         outside_children = collect_all_children("Outside", STATE_HIERARCHY)
 
@@ -285,34 +282,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
                     allowed_transitions_from_outside[transitions] = target_state
 
         if allowed_transitions_from_outside:
-            if len(allowed_transitions_from_outside) == 1:
-                chosen_transition = list(allowed_transitions_from_outside.items())[0][0]
-
-            else:
-                chosen_transition = ask_user_for_transition(
-                    allowed_transitions_from_outside, parent
-                )
-
-            if chosen_transition is not None:
-                globals.state_stack.append(globals.current_state.copy())
-                next_state = allowed_transitions_from_outside[chosen_transition]
-                active, new_remembered = parse_state(next_state)
-                if active != active_current:
-                    state_changed = True
-                globals.current_state["active"] = active
-                globals.current_state["remembered"] = new_remembered
-                globals.transition_trace.append(chosen_transition)
-                update_transition_display(
-                    transition_trace_label, reset_button, undo_button
-                )
-        else:
-            logging.error(
-                f"No valid transitions found from {current} to {active_clicked}"
-            )
-            messagebox.showinfo(
-                "Invalid Transition",
-                f"Cannot transition from {current} to anywhere (outside)",
-            )
+            state_changed = state_select(allowed_transitions_from_outside,active_current,transition_trace_label, reset_button, undo_button, parent)
     else:
         logging.error(f"No valid transitions found from {current} to {active_clicked}")
         messagebox.showinfo(
