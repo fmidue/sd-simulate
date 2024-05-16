@@ -269,7 +269,7 @@ def state_handling(state, transition_trace_label, reset_button, undo_button, par
 
         if allowed_transitions_from_children:
             state_changed = state_select(
-                allowed_transitions_from_outside,
+                allowed_transitions_from_children,
                 active_current,
                 transition_trace_label,
                 reset_button,

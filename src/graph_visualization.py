@@ -1,10 +1,9 @@
-import logging
 import io
-
-from PIL import Image
+import logging
 
 import globals
 from graphviz import Digraph
+from PIL import Image
 from utilities import clean_state_representation
 
 
