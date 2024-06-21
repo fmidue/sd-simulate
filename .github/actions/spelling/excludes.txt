@@ -63,6 +63,7 @@ ignore$
 \.yaml$
 \.yml$
 \.zip$
+\.md$
 ^\.github/actions/spelling/
 ^\.github/linters/
 ^examples/

@@ -1,11 +1,9 @@
+import io
 import logging
-import os
-import platform
-import subprocess
 
 import globals
-from config import STATE_DIAGRAM_GRAPH_PATH
 from graphviz import Digraph
+from PIL import Image
 from utilities import clean_state_representation
 
 
@@ -74,23 +72,11 @@ def show_state_diagram_graph():
         logging.error("No transitions data available. Load transitions first.")
         return
 
-    graph = create_state_diagram_graph()
-    display_state_diagram_graph(graph)
+    display_state_diagram_graph(create_state_diagram_graph())
 
 
 def display_state_diagram_graph(graph):
-    graph_file_path = STATE_DIAGRAM_GRAPH_PATH
-    graph.save(graph_file_path)
+    byte_stream = io.BytesIO(graph.pipe(format="png"))
 
-    subprocess.run(["dot", "-Tpng", "-o", "state_diagram_graph.png", graph_file_path])
-
-    image_path = os.path.abspath("state_diagram_graph.png")
-
-    if platform.system() == "Darwin":
-        subprocess.run(["open", "-a", "Preview", image_path])
-    elif platform.system() == "Windows":
-        os.startfile(image_path)
-    elif platform.system() == "Linux":
-        subprocess.run(["xdg-open", image_path])
-    else:
-        logging.error("Unsupported operating system.")
+    img = Image.open(byte_stream)
+    img.show()
