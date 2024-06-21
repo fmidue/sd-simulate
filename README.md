@@ -29,7 +29,8 @@
 
 ![Product Name Screen Shot][product-screenshot]
 
-With this tool, you can display and analyze UML state diagrams to get a better understanding of how transitions and regions interact with each other.
+With this tool, you can display, execute and analyze UML state diagrams to get a better understanding of how transitions and regions interact with each other.
+Supported analyses:
 <br/>
 
 * generate the corresponding reachability graph
@@ -64,7 +65,7 @@ If you are having trouble installing the required Python3 Libraries see [here][p
    or Download and save locally
 2. Install [Cairosvg][cairosvg-package]
    ```sh
-   pip install pycairo
+   pip install cairosvg
    ```
 3. Install [Graphviz-pylib][graphviz-package]
    ```sh
