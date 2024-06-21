@@ -24,4 +24,3 @@ snd
 xdg
 xscrollcommand
 yscrollcommand
-startfile
