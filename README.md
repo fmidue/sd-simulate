@@ -65,7 +65,7 @@ If you are having trouble installing the required Python3 Libraries see [here][p
    or Download and save locally
 2. Install [Cairosvg][cairosvg-package]
    ```sh
-  pip install cairosvg
+   pip install cairosvg
    ```
 3. Install [Graphviz-pylib][graphviz-package]
    ```sh
