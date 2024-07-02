@@ -26,9 +26,9 @@ from config import (
     TRANSITION_TRACE_TITLE_BG,
 )
 from graph_analysis import (
+    decide_graph_analysis,
     on_reachability_analysis,
-    perform_longest_path_analysis,
-    perform_max_transition_path_analysis,
+    perform_reachability_analysis,
 )
 from graph_visualization import show_state_diagram_graph
 from GUI import (
@@ -95,6 +95,7 @@ def run_app():
             initial_state_key = globals.initial_state_key
             globals.analysis_results_text.pack_forget()
             globals.analysis_results_visible = False
+            perform_reachability_analysis(current_transitions, initial_state_key)
 
     def update_text_width():
         canvas_width = canvas.winfo_width()
@@ -254,8 +255,8 @@ def run_app():
         left_button_frame,
         text="Max Nodes Analysis",
         state="disabled",
-        command=lambda: perform_longest_path_analysis(
-            current_transitions, initial_state_key, show_analysis_results
+        command=lambda: decide_graph_analysis(
+            "node", current_transitions, initial_state_key, show_analysis_results
         ),
     )
 
@@ -263,8 +264,8 @@ def run_app():
         left_button_frame,
         text="Max transitions Analysis",
         state="disabled",
-        command=lambda: perform_max_transition_path_analysis(
-            current_transitions, initial_state_key, show_analysis_results
+        command=lambda: decide_graph_analysis(
+            "transition", current_transitions, initial_state_key, show_analysis_results
         ),
     )
 

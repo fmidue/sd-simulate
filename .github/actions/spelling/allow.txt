@@ -15,10 +15,14 @@ graphviz
 https
 ispell
 levelname
+maxnode
+maxtransition
 nsew
 padx
 pady
 println
+pycairo
+pylib
 scrollregion
 snd
 xdg
