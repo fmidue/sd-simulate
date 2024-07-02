@@ -59,20 +59,20 @@ In order to use this tool, you will need to install Python as well as Graphviz o
 If you are having trouble installing the required Python3 Libraries see [here][python-help].
 
 1. Clone the repository
-   ```text
+   ```sh
    git clone https://github.com/fmidue/sd-simulate
    ```
    or Download and save locally
 2. Install [Cairosvg][cairosvg-package]
-   ```text
+   ```sh
   pip install cairosvg
    ```
 3. Install [Graphviz-pylib][graphviz-package]
-   ```text
+   ```sh
    pip install graphviz
    ```
 3. Install [Pycairo][pycairo-package]
-   ```text
+   ```sh
    pip install pycairo
    ```
 4. Navigate to and [run][python-help2] main.py
