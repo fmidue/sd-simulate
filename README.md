@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD033 MD041 -->
+<!-- markdownlint-disable MD033 MD040 MD041 MD053 -->
 <a name="readme-top"></a>
 
 <!-- PROJECT LOGO -->
