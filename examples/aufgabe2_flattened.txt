@@ -1,0 +1,18 @@
+[*] -> F
+F -> G : a
+G -> F : a
+G -> E : h
+E -> F : k
+E -> (A, D) : h
+(A, D) -> (B, D) : a
+(A, D) -> (A, C) : b
+(B, D) -> (A, D) : a
+(B, D) -> (B, C) : b
+(A, C) -> (B, C) : a
+(A, C) -> (A, D) : b
+(B, C) -> (A, C) : a
+(B, C) -> (B, D) : b
+(A, D) -> F : k
+(B, D) -> F : k
+(A, C) -> F : k
+(B, C) -> F : k
