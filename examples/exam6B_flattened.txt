@@ -1,0 +1,11 @@
+[*] -> (A, C)
+(A, C) -> (A, D) : z
+(A, C) -> (B, C) : x
+(A, D) -> (B, D) : x
+(B, C) -> (B, D) : z
+(B, C) -> (A, C) : y
+(B, D) -> (A, D) : y
+(A, C) -> [**] : exit
+(A, D) -> [**] : exit
+(B, C) -> [**] : exit
+(B, D) -> [**] : exit
